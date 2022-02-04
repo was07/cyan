@@ -1,0 +1,25 @@
+expr       : KW:let IDENTIFIER EQ expr
+           : comp-expr ((KW:and|KW:or) comp-expr)*
+
+comp-expr  : arith-expr ((EE|NE|GT|LT|GTE|LTE) arith-expr)*
+
+arith-expr : NOT comp-expr
+           : term ((PLUS | MINUS) term)*
+
+term       : factor ((MUL | DIV) factor)*
+
+factor     : (PLUS | MINUS) factor
+           : power
+
+power      : call (POW factor)*
+
+call       : atom (L_PAREN (expr (COMMA expr)*)? R_PAREN)?
+
+atom       : INT | FLOAT | IDENTIFIER | LITERAL
+           : L_PAREN expr R_PAREN
+           : if-expr
+           : func-def
+
+if-expr    : KW:if comp-expr KW:then expr KW:else expr
+
+func-def   : KW:fun L_PAREN (IDENTIFIER (COMMA IDENTIFIER)*)? R_PAREN COLON expr
