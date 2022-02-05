@@ -100,7 +100,7 @@ class IfBlockNode(Node):
 
 class FuncDefNode(Node):
     def __init__(self, name: str, parameters: list[Token], body: Node):
-        self.name = name
+        self.name = name or '[lambda]'
         self.parameters = parameters
         self.body = body
 
@@ -140,7 +140,7 @@ class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.cur_index = -1
-        self.cur_tok = None
+        self.cur_tok: Token = None
         self.advance()  # self.cur_tok will be set up in this call
     
     def advance(self):
@@ -197,9 +197,9 @@ class Parser:
     
         if res.error: return res.failure(
             InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end,
-                               "Expected let, int, float, identifier, '+', '-' or '('").set_ecode('xp')
+                               "Expected Expression: let, int, float, identifier, '+', '-' or '('").set_ecode('xp')
         )
-    
+        
         return res.success(node)
     
     def call(self):
@@ -237,11 +237,11 @@ class Parser:
                     return res.failure(
                         InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ')'")
                     )
-
+            pos_end = self.cur_tok.pos_end.copy()
             res.register_adv()
             self.advance()
             
-            return res.success(FuncCallNode(atom, args))
+            return res.success(FuncCallNode(atom, args).set_pos(atom.pos_start, pos_end))
         return res.success(atom)
 
     def atom(self):
@@ -286,7 +286,7 @@ class Parser:
             return res.success(node)
         
         return res.failure(
-            InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected identifier, int, float, '+', '-' or '('")
+            InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected Value: identifier, int, float, '+', '-' or '('")
         )
     
     def factor(self):
@@ -385,12 +385,20 @@ class Parser:
         # self.cur_tok is KW:fun
         res = ParseResult()
         res.register_adv()
+        name = ''
         pos_start = self.cur_tok.pos_start
+        res.register_adv()
         self.advance()
         
+        if self.cur_tok.is_type(t.IDENTIFIER):
+            name = self.cur_tok.value
+            res.register_adv()
+            self.advance()
+
         if not self.cur_tok.is_type(t.L_PAREN):
             return res.failure(
-                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '('")
+                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end,
+                                   "Expected '('" if name else "Expected Identifier or '('")
             )
         res.register_adv()
         self.advance()
@@ -420,6 +428,7 @@ class Parser:
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Invalid Syntax").set_ecode('fd')
             )
+        
         res.register_adv()
         self.advance()
         if not self.cur_tok.is_type(t.COLON):
@@ -434,7 +443,7 @@ class Parser:
             return res
 
         return res.success(
-            FuncDefNode('[lambda]', parameters, expr).set_pos(pos_start, expr.pos_end)
+            FuncDefNode(name, parameters, expr).set_pos(pos_start, expr.pos_end)
         )
 
 

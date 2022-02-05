@@ -13,7 +13,7 @@ factor     : (PLUS | MINUS) factor
 
 power      : call (POW factor)*
 
-call       : atom (L_PAREN (expr (COMMA expr)*)? R_PAREN)?
+call       : atom IDENTIFIER? (L_PAREN (expr (COMMA expr)*)? R_PAREN)?
 
 atom       : INT | FLOAT | IDENTIFIER | LITERAL
            : L_PAREN expr R_PAREN

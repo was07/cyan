@@ -245,11 +245,12 @@ class Function(Object):
         if self.n_parameters != len(args):
             return res.failure(
                 RTError(self.pos_start, self.pos_end, ("Too many" if len(args) > self.n_parameters else "Not enough") +
-                        f"arguments given into {self.name}, takes {len(self.parameters)}", context)
+                        f" arguments given into {self.name}, takes {len(self.parameters)}", context)
             )
         
         interpreter = Interpreter()
         
+        # setting parameters to given values
         for i in range(self.n_parameters):
             parameter = self.parameters[i]
             arg = args[i]
@@ -428,6 +429,7 @@ class Interpreter:
         res = RTResult()
         
         func = Function(node.name, node.parameters, node.body).set_pos(node.pos_start, node.pos_end).set_context(context)
+        context.symbol_map.set(node.name, func)
         
         return res.success(
             func
@@ -444,9 +446,12 @@ class Interpreter:
         for arg_node in node.arguments:
             args.append(res.register(self.visit(arg_node, context)))
             if res.error: return res
-    
+        
+        value_to_call: Function
         return_value = res.register(value_to_call.execute(args))
-        if res.error: return res
+        if res.error:
+            res.error.set_pos(node.pos_start, node.pos_end)
+            return res
         return res.success(return_value)
 
 
