@@ -15,7 +15,7 @@ class Object:
     type_name: str
     pos_start: Optional[int]
     pos_end: Optional[int]
-    context: Optional[Context]
+    context: Optional["Context"]
     
     def __init__(self, type_name='Object'):
         self.type_name = type_name
