@@ -84,9 +84,8 @@ class Object:
 
 class Bool(Object):
     def __init__(self, value):
-        Object.__init__(self)
+        Object.__init__(self, 'Bool')
         self.value = bool(value)
-        self.type_name = 'Bool'
         
         self.pos_start = None
         self.pos_end = None
@@ -116,9 +115,8 @@ class Bool(Object):
 
 class Number(Object):
     def __init__(self, value):
-        Object.__init__(self)
+        Object.__init__(self, 'Number')
         self.value = value
-        self.type_name = 'Number'
         
         self.pos_start = None
         self.pos_end = None
