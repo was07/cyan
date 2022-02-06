@@ -28,7 +28,7 @@ class Tokenizer:
         self.text = text
         self.text_length = len(text)
         self.car = None
-        self.pos = Pos(file_name, text, -1, 0, -1)
+        self.pos: Pos = Pos(file_name, text, -1, 0, -1)
         self.advance()
     
     def advance(self):

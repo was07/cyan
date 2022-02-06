@@ -1,3 +1,8 @@
+# for type hinting
+from typing import Optional
+from utils import Pos
+
+
 class t:
     INT = 'INT'
     FLOAT = 'FLOAT'
@@ -31,6 +36,9 @@ class t:
 
 
 class Token:
+    pos_start: Optional[Pos]
+    pos_end: Optional[Pos]
+
     def __init__(self, type_, value=None, pos_start=None, pos_end=None):
         self.type_ = type_
         self.value = value

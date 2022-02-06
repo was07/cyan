@@ -4,12 +4,14 @@ from utils import InvalidSyntaxError
 
 
 # for type hinting
+from typing import Optional
 from tokens import Token
+from utils import Pos
 
 
 class Node:
-    pos_start = None
-    pos_end = None
+    pos_start: Optional[Pos]
+    pos_end: Optional[Pos]
     
     def set_pos(self, pos_start, pos_end):
         self.pos_start = pos_start

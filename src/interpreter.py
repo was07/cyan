@@ -5,6 +5,7 @@ from utils import RTError
 # for type hinting
 from typing import Optional
 import ast_parser
+from utils import Pos
 
 # for run function
 from tokenizer import tokenize
@@ -13,8 +14,8 @@ from ast_parser import make_ast
 
 class Object:
     type_name: str
-    pos_start: Optional[int]
-    pos_end: Optional[int]
+    pos_start: Optional[Pos]
+    pos_end: Optional[Pos]
     context: Optional["Context"]
     
     def __init__(self, type_name='Object'):
