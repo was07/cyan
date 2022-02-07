@@ -1,12 +1,14 @@
 from interpreter import run
 import sys
 
+from __init__ import __version__
+
 
 DEBUG = 0
 
 
 def shell():
-    print('Cyan 1.0.0')
+    print(f'Cyan {__version__}')
     while True:
         text = input('&> ')
         result, error = run('<stdin>', text, debug_mode=DEBUG)
