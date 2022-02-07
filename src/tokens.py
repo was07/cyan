@@ -3,7 +3,7 @@ from typing import Optional
 from utils import Pos
 
 
-class t:
+class T:
     INT = 'INT'
     FLOAT = 'FLOAT'
     

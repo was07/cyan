@@ -1,19 +1,19 @@
-from tokens import t
+from tokens import T
 from tokens import Token
 
 from utils import Pos, InvalidCharacterError, InvalidSyntaxError
 
 
 car_tok_map = {
-    '+': t.PLUS,
-    '-': t.MINUS,
-    '*': t.MUL,
-    '/': t.DIV,
-    '^': t.POW,
-    '(': t.L_PAREN,
-    ')': t.R_PAREN,
-    ':': t.COLON,
-    ',': t.COMMA
+    '+': T.PLUS,
+    '-': T.MINUS,
+    '*': T.MUL,
+    '/': T.DIV,
+    '^': T.POW,
+    '(': T.L_PAREN,
+    ')': T.R_PAREN,
+    ':': T.COLON,
+    ',': T.COMMA
 }
 
 keywords = ('let', 'and', 'or', 'not', 'if', 'then', 'elif', 'else', 'fun')
@@ -63,14 +63,14 @@ class Tokenizer:
                 tokens.append(self.get_greater_then())
             elif self.car.isspace():
                 if self.car == '\n':
-                    tokens.append(Token(t.NEWLINE, pos_start=self.pos))
+                    tokens.append(Token(T.NEWLINE, pos_start=self.pos))
                 pass
             else:
                 return [], \
                        InvalidCharacterError(self.pos, f'Character {repr(self.car)} is invalid.')
             self.advance()
         
-        tokens.append(Token(t.EOF, pos_start=self.pos))
+        tokens.append(Token(T.EOF, pos_start=self.pos))
         return tokens, None
     
     def get_number(self):
@@ -88,9 +88,9 @@ class Tokenizer:
             self.advance()
     
         if dot_count == 0:
-            return Token(t.INT, int(num_str), pos_start=pos_start, pos_end=self.pos.copy())
+            return Token(T.INT, int(num_str), pos_start=pos_start, pos_end=self.pos.copy())
         else:
-            return Token(t.FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos.copy())
+            return Token(T.FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos.copy())
 
     def get_not_equals(self):
         start_pos = self.pos.copy()
@@ -98,40 +98,40 @@ class Tokenizer:
     
         if self.car == '=':
             self.advance()
-            return Token(t.NE, pos_start=start_pos, pos_end=self.pos.copy()), None
+            return Token(T.NE, pos_start=start_pos, pos_end=self.pos.copy()), None
     
         self.advance()
         return None, InvalidSyntaxError(start_pos, self.pos.copy(), 'Invalid Syntax')
 
     def get_equals(self):
-        tok_type = t.EQ
+        tok_type = T.EQ
         start_pos = self.pos.copy()
         self.advance()
         
         if self.car == '=':
-            tok_type = t.EE
+            tok_type = T.EE
             self.advance()
         
         return Token(tok_type, pos_start=start_pos, pos_end=self.pos.copy())
     
     def get_less_then(self):
         pos_start = self.pos.copy()
-        tok_type = t.LT
+        tok_type = T.LT
         self.advance()
         
         if self.car == '=':
-            tok_type = t.LTE
+            tok_type = T.LTE
             self.advance()
         
         return Token(tok_type, pos_start=pos_start, pos_end=self.pos.copy())
     
     def get_greater_then(self):
         pos_start = self.pos.copy()
-        tok_type = t.GT
+        tok_type = T.GT
         self.advance()
 
         if self.car == '=':
-            tok_type = t.GTE
+            tok_type = T.GTE
             self.advance()
 
         return Token(tok_type, pos_start=pos_start, pos_end=self.pos.copy())
@@ -145,11 +145,11 @@ class Tokenizer:
             self.advance()
         
         if iden in keywords:
-            toke_type = t.KW
+            toke_type = T.KW
         elif iden in literals:
-            toke_type = t.LITERAL
+            toke_type = T.LITERAL
         else:
-            toke_type = t.IDENTIFIER
+            toke_type = T.IDENTIFIER
         
         return Token(toke_type, iden, pos_start, self.pos.copy())
 

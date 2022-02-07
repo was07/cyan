@@ -1,4 +1,4 @@
-from tokens import t
+from tokens import T
 
 from utils import InvalidSyntaxError
 
@@ -142,7 +142,7 @@ class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.cur_index = -1
-        self.cur_tok: Token = None
+        self.cur_tok: Optional[Token] = None
         self.advance()  # self.cur_tok will be set up in this call
     
     def advance(self):
@@ -157,7 +157,7 @@ class Parser:
 
     def parse(self):
         res = self.expr()
-        if res.error is None and (not self.cur_tok.is_type(t.EOF, t.NEWLINE)):
+        if res.error is None and (not self.cur_tok.is_type(T.EOF, T.NEWLINE)):
             res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, 'Invalid Syntax').set_ecode('p')
             )
@@ -167,11 +167,11 @@ class Parser:
     def expr(self):
         res = ParseResult()
     
-        if self.cur_tok.is_equals(t.KW, 'let'):
+        if self.cur_tok.is_equals(T.KW, 'let'):
             res.register_adv()
             self.advance()
         
-            if not self.cur_tok.is_type(t.IDENTIFIER):
+            if not self.cur_tok.is_type(T.IDENTIFIER):
                 return res.failure(
                     InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected identifier")
                 )
@@ -180,7 +180,7 @@ class Parser:
             res.register_adv()
             self.advance()
         
-            if not self.cur_tok.is_type(t.EQ):
+            if not self.cur_tok.is_type(T.EQ):
                 return res.failure(
                     InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '='")
                 )
@@ -194,7 +194,7 @@ class Parser:
                 VarAssignNode(var_name, expr)
             )
     
-        node = res.register(self.bin_oper(self.comp_expr, ((t.KW, 'and'), (t.KW, 'or'))))
+        node = res.register(self.bin_oper(self.comp_expr, ((T.KW, 'and'), (T.KW, 'or'))))
         if res.error: return res
     
         if res.error: return res.failure(
@@ -210,17 +210,17 @@ class Parser:
         atom = res.register(self.atom())
         if res.error: return res
         
-        if self.cur_tok.is_type(t.L_PAREN):
+        if self.cur_tok.is_type(T.L_PAREN):
             args = []
             res.register_adv()
             self.advance()
             
-            if not self.cur_tok.is_type(t.R_PAREN):
+            if not self.cur_tok.is_type(T.R_PAREN):
                 arg = res.register(self.expr())
                 if res.error: return res
                 args.append(arg)
                 
-                while self.cur_tok.is_type(t.COMMA):
+                while self.cur_tok.is_type(T.COMMA):
                     res.register_adv()
                     self.advance()
                     
@@ -228,14 +228,14 @@ class Parser:
                     if res.error: return res
                     args.append(arg)
                     
-                    if self.cur_tok.is_type(t.R_PAREN):
+                    if self.cur_tok.is_type(T.R_PAREN):
                         break
-                    elif not self.cur_tok.is_type(t.COMMA):
+                    elif not self.cur_tok.is_type(T.COMMA):
                         return res.failure(
                             InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ',' or ')'")
                         )
                 
-                if not self.cur_tok.is_type(t.R_PAREN):
+                if not self.cur_tok.is_type(T.R_PAREN):
                     return res.failure(
                         InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ')'")
                     )
@@ -250,39 +250,39 @@ class Parser:
         res = ParseResult()
         tok = self.cur_tok
         
-        if tok.is_type(t.INT, t.FLOAT):
+        if tok.is_type(T.INT, T.FLOAT):
             res.register_adv()
             self.advance()
             return res.success(NumberNode(tok))
         
-        elif tok.is_type(t.LITERAL):
+        elif tok.is_type(T.LITERAL):
             res.register_adv()
             self.advance()
             return res.success(LiteralNode(tok))
         
-        elif tok.is_type(t.L_PAREN):
+        elif tok.is_type(T.L_PAREN):
             res.register_adv()
             self.advance()
             expr = res.register(self.expr())
             if res.error: return res
-            if self.cur_tok.is_type(t.R_PAREN):
+            if self.cur_tok.is_type(T.R_PAREN):
                 res.register_adv()
                 self.advance()
                 return res.success(expr)
             else:
                 return res.failure(InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ')'"))
         
-        elif tok.is_type(t.IDENTIFIER):
+        elif tok.is_type(T.IDENTIFIER):
             res.register_adv()
             self.advance()
             return res.success(VarAccessNode(tok))
         
-        elif tok.is_equals(t.KW, 'if'):
+        elif tok.is_equals(T.KW, 'if'):
             node = res.register(self.if_expr())
             
             return res.success(node)
         
-        elif tok.is_equals(t.KW, 'fun'):
+        elif tok.is_equals(T.KW, 'fun'):
             node = res.register(self.func_def())
             
             return res.success(node)
@@ -295,7 +295,7 @@ class Parser:
         res = ParseResult()
         tok = self.cur_tok
         
-        if tok.is_type(t.PLUS, t.MINUS):
+        if tok.is_type(T.PLUS, T.MINUS):
             res.register_adv()
             self.advance()
             factor = res.register(self.factor())
@@ -305,17 +305,17 @@ class Parser:
         return self.power()
     
     def term(self):
-        return self.bin_oper(self.factor, (t.MUL, t.DIV))
+        return self.bin_oper(self.factor, (T.MUL, T.DIV))
 
     def power(self):
-        return self.bin_oper(self.call, (t.POW,), self.factor)
+        return self.bin_oper(self.call, (T.POW,), self.factor)
 
     def arith_expr(self):
-        return self.bin_oper(self.term, (t.PLUS, t.MINUS))
+        return self.bin_oper(self.term, (T.PLUS, T.MINUS))
     
     def comp_expr(self):
         res = ParseResult()
-        if self.cur_tok.is_equals(t.KW, 'not'):
+        if self.cur_tok.is_equals(T.KW, 'not'):
             op_tok = self.cur_tok
             res.register_adv()
             self.advance()
@@ -324,7 +324,7 @@ class Parser:
             if res.error: return res
             
             return res.success(UnaryOpNode(op_tok, node))
-        node = res.register(self.bin_oper(self.arith_expr, (t.EE, t.NE, t.LT, t.GT, t.LTE, t.GTE)))
+        node = res.register(self.bin_oper(self.arith_expr, (T.EE, T.NE, T.LT, T.GT, T.LTE, T.GTE)))
         
         if res.error: return res
         
@@ -360,7 +360,7 @@ class Parser:
         cond = res.register(self.comp_expr())
         if res.error: return res
     
-        if not self.cur_tok.is_equals(t.KW, 'then'):
+        if not self.cur_tok.is_equals(T.KW, 'then'):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected 'then'")
             )
@@ -370,7 +370,7 @@ class Parser:
         expr = res.register(self.expr())
         if res.error: return res
     
-        if not self.cur_tok.is_equals(t.KW, 'else'):
+        if not self.cur_tok.is_equals(T.KW, 'else'):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected 'else'")
             )
@@ -392,12 +392,12 @@ class Parser:
         res.register_adv()
         self.advance()
         
-        if self.cur_tok.is_type(t.IDENTIFIER):
+        if self.cur_tok.is_type(T.IDENTIFIER):
             name = self.cur_tok.value
             res.register_adv()
             self.advance()
 
-        if not self.cur_tok.is_type(t.L_PAREN):
+        if not self.cur_tok.is_type(T.L_PAREN):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end,
                                    "Expected '('" if name else "Expected Identifier or '('")
@@ -406,34 +406,34 @@ class Parser:
         self.advance()
         
         parameters = []
-        if self.cur_tok.is_type(t.IDENTIFIER):
+        if self.cur_tok.is_type(T.IDENTIFIER):
             parameters.append(self.cur_tok)
             res.register_adv()
             self.advance()
 
-            while self.cur_tok.is_type(t.COMMA):
+            while self.cur_tok.is_type(T.COMMA):
                 res.register_adv()
                 self.advance()
                 
-                if self.cur_tok.is_type(t.IDENTIFIER):
+                if self.cur_tok.is_type(T.IDENTIFIER):
                     parameters.append(self.cur_tok)
                     res.register_adv()
                     self.advance()
-                elif self.cur_tok.is_type(t.R_PAREN):
+                elif self.cur_tok.is_type(T.R_PAREN):
                     break
                 else:
                     return res.failure(
                         InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ',' or ')'")
                     )
         
-        if not self.cur_tok.is_type(t.R_PAREN):
+        if not self.cur_tok.is_type(T.R_PAREN):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Invalid Syntax").set_ecode('fd')
             )
         
         res.register_adv()
         self.advance()
-        if not self.cur_tok.is_type(t.COLON):
+        if not self.cur_tok.is_type(T.COLON):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ':'")
             )

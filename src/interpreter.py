@@ -1,4 +1,4 @@
-from tokens import t
+from tokens import T
 
 from utils import RTError
 
@@ -85,8 +85,10 @@ class Object:
         return None, self.not_supported("'not' logic", self)
     
     def not_supported(self, what_is_not_supported, other=None):
-        return RTError(self.pos_start, self.pos_end,
-                       f"{self.type_name} does not support {what_is_not_supported} with {other.type_name}", self.context)
+        return RTError(
+            self.pos_start, self.pos_end,
+            f"{self.type_name} does not support {what_is_not_supported} with {other.type_name}", self.context
+        )
 
 
 class Bool(Object):
@@ -266,7 +268,9 @@ class Function(Object):
         return res.success(value)
     
     def copy(self):
-        copy = Function(self.name, self.parameters, self.body).set_context(self.context).set_pos(self.pos_start, self.pos_end)
+        copy = Function(self.name, self.parameters, self.body)
+        copy.set_context(self.context)
+        copy.set_pos(self.pos_start, self.pos_end)
         return copy
 
 
@@ -367,34 +371,36 @@ class Interpreter:
         if res.error: return res
         
         oper = node.oper
+        result = None
+        error = None
         
-        if oper.is_type(t.PLUS):
+        if oper.is_type(T.PLUS):
             result, error = left.operate_plus(right)
-        elif oper.is_type(t.MINUS):
+        elif oper.is_type(T.MINUS):
             result, error = left.operate_minus(right)
-        elif oper.is_type(t.MUL):
+        elif oper.is_type(T.MUL):
             result, error = left.operate_mul(right)
-        elif oper.is_type(t.DIV):
+        elif oper.is_type(T.DIV):
             result, error = left.operate_div(right)
-        elif oper.is_type(t.POW):
+        elif oper.is_type(T.POW):
             result, error = left.operate_pow(right)
             
-        elif oper.is_type(t.EE):
+        elif oper.is_type(T.EE):
             result, error = left.compare_eq(right)
-        elif oper.is_type(t.NE):
+        elif oper.is_type(T.NE):
             result, error = left.compare_ne(right)
-        elif oper.is_type(t.LT):
+        elif oper.is_type(T.LT):
             result, error = left.compare_lt(right)
-        elif oper.is_type(t.GT):
+        elif oper.is_type(T.GT):
             result, error = left.compare_gt(right)
-        elif oper.is_type(t.LTE):
+        elif oper.is_type(T.LTE):
             result, error = left.compare_lte(right)
-        elif oper.is_type(t.GTE):
+        elif oper.is_type(T.GTE):
             result, error = left.compare_gte(right)
         
-        elif oper.is_equals(t.KW, 'and'):
+        elif oper.is_equals(T.KW, 'and'):
             result, error = left.logic_and(right)
-        elif oper.is_equals(t.KW, 'or'):
+        elif oper.is_equals(T.KW, 'or'):
             result, error = left.logic_or(right)
         
         if error:
@@ -408,9 +414,9 @@ class Interpreter:
         if res.error: return res
         
         error = None
-        if node.oper.is_type(t.MINUS):
+        if node.oper.is_type(T.MINUS):
             number, error = number.operate_mul(Number(-1))
-        elif node.oper.is_equals(t.KW, 'not'):
+        elif node.oper.is_equals(T.KW, 'not'):
             number, error = number.logic_not()
         
         if error:
