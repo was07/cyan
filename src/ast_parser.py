@@ -1,12 +1,12 @@
-from tokens import T
+from src.tokens import T
 
-from utils import InvalidSyntaxError
+from src.utils import InvalidSyntaxError
 
 
 # for type hinting
 from typing import Optional
-from tokens import Token
-from utils import Pos
+from src.tokens import Token
+from src.utils import Pos
 
 
 class Node:
