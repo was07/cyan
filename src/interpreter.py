@@ -119,7 +119,7 @@ class Bool(Object):
         return Bool(self.value or other.value).set_context(self.context), None
     
     def logic_not(self):
-        return Bool(not self.value).set_context(self.context)
+        return Bool(not self.value).set_context(self.context), None
 
 
 class Number(Object):
