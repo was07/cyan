@@ -24,6 +24,8 @@ class T:
     
     L_PAREN = 'L_PAREN'
     R_PAREN = 'R_PAREN'
+    L_CPAREN = 'L_CPAREN'
+    R_CPAREN = 'R_CPAREN'
     
     LITERAL = 'LITERAL'
     IDENTIFIER = 'IDENTIFIER'

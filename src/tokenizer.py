@@ -11,11 +11,13 @@ car_tok_map = {
     '^': T.POW,
     '(': T.L_PAREN,
     ')': T.R_PAREN,
+    '{': T.L_CPAREN,
+    '}': T.R_CPAREN,
     ':': T.COLON,
     ',': T.COMMA
 }
 
-keywords = ('let', 'and', 'or', 'not', 'if', 'then', 'elif', 'else', 'fun')
+keywords = ('let', 'and', 'or', 'not', 'if', 'then', 'elif', 'else', 'while', 'fun')
 
 literals = ('true', 'false')
 

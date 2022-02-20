@@ -91,6 +91,14 @@ class Object:
         )
 
 
+class NoneObj(Object):
+    def __init__(self):
+        super().__init__('NoneObj')
+    
+    def __repr__(self):
+        return 'None'
+
+
 class Bool(Object):
     def __init__(self, value):
         Object.__init__(self, 'Bool')
@@ -327,19 +335,22 @@ class Interpreter:
     def no_visit_method(self, node, context):
         raise Exception(f'visit_{type(node).__name__} method is not defined')
     
-    def visit_NumberNode(self, node: ast_parser.NumberNode, context):
+    @staticmethod
+    def visit_NumberNode(node: ast_parser.NumberNode, context):
         return RTResult().success(
             Number(node.tok.value).set_pos(node.pos_start, node.pos_end).set_context(context)
         )
     
-    def visit_LiteralNode(self, node: ast_parser.LiteralNode, context):
+    @staticmethod
+    def visit_LiteralNode(node: ast_parser.LiteralNode, context):
         res = RTResult()
         if node.tok.value == 'true':
             return res.success(Bool(True).set_pos(node.pos_start, node.pos_end).set_context(context))
         if node.tok.value == 'false':
             return res.success(Bool(False).set_pos(node.pos_start, node.pos_end).set_context(context))
     
-    def visit_VarAccessNode(self, node: ast_parser.VarAccessNode, context):
+    @staticmethod
+    def visit_VarAccessNode(node: ast_parser.VarAccessNode, context):
         res = RTResult()
         var_name = node.var_name.value
         value = context.symbol_map.get(var_name)
@@ -436,7 +447,21 @@ class Interpreter:
         if res.error: return res
         return res.success(value)
     
-    def visit_FuncDefNode(self, node: ast_parser.FuncDefNode, context):
+    def visit_WhileNode(self, node: ast_parser.WhileNode, context):
+        res = RTResult()
+        cond = res.register(self.visit(node.condition, context))
+        if res.error: return res
+        
+        while cond.is_truthy():
+            value = res.register(self.visit(node.body, context))
+            if res.error: return res
+            cond = res.register(self.visit(node.condition, context))
+            if res.error: return res
+        
+        return res.success(NoneObj())
+    
+    @staticmethod
+    def visit_FuncDefNode(node: ast_parser.FuncDefNode, context):
         res = RTResult()
         
         func = Function(node.name, node.parameters, node.body).set_pos(node.pos_start, node.pos_end).set_context(context)

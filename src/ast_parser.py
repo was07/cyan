@@ -100,6 +100,18 @@ class IfBlockNode(Node):
         return f'(if {self.case[0]} then {self.case[1]} else {self.else_expr})'
 
 
+class WhileNode(Node):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body
+        
+        self.pos_start = condition.pos_start
+        self.pos_end = body.pos_end
+    
+    def __repr__(self):
+        return f'(while {self.condition} do {self.body})'
+
+
 class FuncDefNode(Node):
     def __init__(self, name: str, parameters: list[Token], body: Node):
         self.name = name or '[lambda]'
@@ -287,6 +299,11 @@ class Parser:
             
             return res.success(node)
         
+        elif tok.is_equals(T.KW, 'while'):
+            node = res.register(self.while_expr())
+            
+            return res.success(node)
+        
         return res.failure(
             InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected Value: identifier, int, float, '+', '-' or '('")
         )
@@ -447,6 +464,35 @@ class Parser:
         return res.success(
             FuncDefNode(name, parameters, expr).set_pos(pos_start, expr.pos_end)
         )
+    
+    def while_expr(self):
+        # self.cur_tok is KW:while
+        res = ParseResult()
+        res.register_adv()
+        self.advance()
+        
+        cond = res.register(self.comp_expr())
+        if res.error: return res
+        
+        if not self.cur_tok.is_type(T.L_CPAREN):
+            return res.failure(
+                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '{'")
+            )
+        res.register_adv()
+        self.advance()
+        
+        expr = res.register(self.expr())
+        if res.error: return res
+        
+        if not self.cur_tok.is_type(T.R_CPAREN):
+            return res.failure(
+                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '}'")
+            )
+        
+        res.register_adv()
+        self.advance()
+        
+        return res.success(WhileNode(cond, expr))
 
 
 def make_ast(tokens):
