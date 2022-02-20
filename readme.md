@@ -6,6 +6,7 @@
 - variables
 - binary and unary operations
 - if expressions
+- while loops
 - functions
 - lambda functions
 
