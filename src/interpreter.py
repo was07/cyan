@@ -282,6 +282,31 @@ class Function(Object):
         return copy
 
 
+class BuiltInFunction(Object):
+    def __init__(self, name, function):
+        Object.__init__(self)
+        self.type_name = "BuiltInFunction"
+        self.name = name
+        self.function = function
+    
+    def __repr__(self):
+        return f"<Built-in Function {self.name}>"
+    
+    def copy(self):
+        copy = BuiltInFunction(self.name, self.function)
+        copy.set_context(self.context)
+        copy.set_pos(self.pos_start, self.pos_end)
+        return copy
+    
+    def execute(self, args):
+        res = RTResult()
+        
+        value = res.register(self.function(*args))
+        if res.error: return res
+        
+        return res.success(value)
+
+
 class RTResult:
     def __init__(self):
         self.value = None
@@ -491,7 +516,13 @@ class Interpreter:
         return res.success(return_value)
 
 
+def build_in_print(*nodes):
+    print(*nodes)
+    return RTResult().success(NoneObj())
+
+
 GLOBAL_SYMBOL_MAP = SymbolMap()
+GLOBAL_SYMBOL_MAP.set('print', BuiltInFunction('print', build_in_print))
 
 
 def interpret(node, context) -> RTResult:
