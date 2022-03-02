@@ -25,12 +25,12 @@ It will start the Cyan shell.
 
 ```
 Cyan 1.0.0
-&> fun sq(i): i ^ 2
+> fun sq(i): i ^ 2
 <Function sq>
-&> sq(8)
+> sq(8)
 64
-&> let a = 1
+> let a = 1
 1
-&> if a > 2 then 4 else 9
+> if a > 2 then 4 else 9
 9
 ```
