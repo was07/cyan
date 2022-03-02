@@ -10,8 +10,6 @@
 - functions
 - lambda functions
 
-__
-
 ## Usage
 
 Pre-requiestes: `git` and `python3`
@@ -22,8 +20,6 @@ git clone https://github.com/was07/Cyan
 python Cyan
 ```
 It will start the Cyan shell.
-
-__
 
 ## Example Code
 
