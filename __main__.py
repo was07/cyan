@@ -10,7 +10,7 @@ DEBUG = 0
 def shell():
     print(f'Cyan {__version__}')
     while True:
-        text = input('&> ')
+        text = input('> ')
         result, error = run('<stdin>', text, debug_mode=DEBUG)
         
         if error:
