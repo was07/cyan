@@ -380,7 +380,7 @@ class Interpreter:
         var_name = node.var_name.value
         value = context.symbol_map.get(var_name)
         
-        if not value:
+        if value is None:
             return res.failure(
                 RTError(node.pos_start, node.pos_end, f"'{var_name}' not defined", context)
             )
