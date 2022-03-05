@@ -6,9 +6,7 @@ from src.utils import Pos, InvalidCharacterError, InvalidSyntaxError
 car_tok_map = {
     '+': T.PLUS,
     '-': T.MINUS,
-    '*': T.MUL,
     '/': T.DIV,
-    '^': T.POW,
     '(': T.L_PAREN,
     ')': T.R_PAREN,
     '{': T.L_CPAREN,
@@ -51,6 +49,8 @@ class Tokenizer:
                 continue
             elif self.car in car_tok_map:
                 tokens.append(Token(car_tok_map[self.car], pos_start=self.pos))
+            elif self.car == '*':
+                tokens.append(self.get_mul_or_paw())
             elif self.car == '!':
                 token, error = self.get_not_equals()
                 if error:
@@ -92,6 +92,16 @@ class Tokenizer:
             return Token(T.INT, int(num_str), pos_start=pos_start, pos_end=self.pos.copy())
         else:
             return Token(T.FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos.copy())
+    
+    def get_mul_or_paw(self):
+        start_pos = self.pos.copy()
+        self.advance()
+    
+        if self.car == '*':
+            self.advance()
+            return Token(T.POW, pos_start=start_pos, pos_end=self.pos.copy())
+        else:
+            return Token(T.MUL, pos_start=start_pos, pos_end=self.pos.copy())
 
     def get_not_equals(self):
         start_pos = self.pos.copy()
