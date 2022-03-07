@@ -23,4 +23,6 @@ atom       : INT | FLOAT | IDENTIFIER | LITERAL
 
 if-expr    : KW:if comp-expr KW:then expr KW:else expr
 
+while-expr : KW:while comp-expr L_CPAREN expr R_CPAREN
+
 func-def   : KW:fun L_PAREN (IDENTIFIER (COMMA IDENTIFIER)*)? R_PAREN COLON expr
