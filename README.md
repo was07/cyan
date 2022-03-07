@@ -25,6 +25,8 @@ It will start the Cyan shell.
 
 ```
 Cyan 1.0.0
+> 7 ** 2
+49
 > fun sq(i): i ^ 2
 <Function sq>
 > sq(8)
@@ -33,4 +35,6 @@ Cyan 1.0.0
 1
 > if a > 2 then 4 else 9
 9
+> while a < 5 {let a = a + 1}
+None
 ```
