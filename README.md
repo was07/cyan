@@ -2,7 +2,8 @@
 
 **Status**: Unstable
 
-**Current features**
+## Current features
+
 - variables
 - binary and unary operations
 - if/else expressions
