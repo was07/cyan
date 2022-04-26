@@ -1,8 +1,8 @@
-from src.interpreter import run
 import time
-from src.__init__ import __version__
-
 import sys
+
+from src.interpreter import run
+from src.__init__ import __version__
 
 
 DEBUG = 0
@@ -38,8 +38,12 @@ def run_file(filename):
         print(result)
 
 
-if __name__ == '__main__':
+def main():
     argv = sys.argv[1:]
     if len(argv) and argv[0] == 'd':
         DEBUG = True
     shell()
+    
+    
+if __name__ == '__main__':
+    main()
