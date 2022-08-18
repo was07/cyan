@@ -24,18 +24,21 @@ It will start the Cyan shell.
 
 ## Example Code
 
-```
-Cyan 1.0.0
-> 7 ** 2
+```js
+Cyan 1.0.0 shell on win32
+>>> 7 ** 2
 49
-> fun sq(i): i ^ 2
-<Function sq>
-> sq(8)
-64
-> let a = 1
-1
-> if a > 2 then 4 else 9
-9
-> while a < 5 {let a = a + 1}
+>>> fun square(i): i ** 2
+<Function square>
+>>> square(4)
+16
+>>> let a = 2
+2
+>>> if a != 2 then 100 else 200
+200
+>>> print(a)
+2   
+None
+>>> while a < 5 {let a = a + 1}
 None
 ```
