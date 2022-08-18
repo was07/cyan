@@ -26,7 +26,7 @@ To see other options, use `python Cyan --help`
 
 ## Example Code
 
-```js
+```py
 Cyan 1.0.0 shell on win32
 >>> 7 ** 2
 49
