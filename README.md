@@ -24,7 +24,7 @@ It will start the Cyan shell.
 
 ## Example Code
 
-```js
+```py
 Cyan 1.0.0 shell on win32
 >>> 7 ** 2
 49
