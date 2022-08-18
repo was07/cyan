@@ -22,6 +22,8 @@ python Cyan
 ```
 It will start the Cyan shell.
 
+To see other options, use `python Cyan --help`
+
 ## Example Code
 
 ```js
