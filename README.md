@@ -1,4 +1,5 @@
 # Cyan Programming Language
+![image](https://user-images.githubusercontent.com/93242673/186396281-64010b4e-5d95-439d-a383-de9bf69795a3.png)
 
 **Status**: Unstable
 
