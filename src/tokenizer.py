@@ -51,6 +51,7 @@ class Tokenizer:
                 tokens.append(Token(car_tok_map[self.car], pos_start=self.pos))
             elif self.car == '*':
                 tokens.append(self.get_mul_or_paw())
+                continue
             elif self.car == '!':
                 token, error = self.get_not_equals()
                 if error:
