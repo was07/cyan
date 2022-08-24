@@ -96,7 +96,7 @@ class NoneObj(Object):
         super().__init__('NoneObj')
     
     def __repr__(self):
-        return 'None'
+        return 'none'
 
 
 class Bool(Object):
@@ -371,8 +371,10 @@ class Interpreter:
         res = RTResult()
         if node.tok.value == 'true':
             return res.success(Bool(True).set_pos(node.pos_start, node.pos_end).set_context(context))
-        if node.tok.value == 'false':
+        elif node.tok.value == 'false':
             return res.success(Bool(False).set_pos(node.pos_start, node.pos_end).set_context(context))
+        elif node.tok.value == 'none':
+            return res.success(NoneObj().set_pos(node.pos_start, node.pos_end).set_context(context))
     
     @staticmethod
     def visit_VarAccessNode(node: ast_parser.VarAccessNode, context):

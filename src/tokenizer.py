@@ -17,7 +17,7 @@ car_tok_map = {
 
 keywords = ('let', 'and', 'or', 'not', 'if', 'then', 'elif', 'else', 'while', 'fun')
 
-literals = ('true', 'false')
+literals = ('true', 'false', 'none')
 
 
 # Tokenizer/Lexer

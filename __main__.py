@@ -43,8 +43,11 @@ def main():
     """
     debug = False
     argv = sys.argv[1:]
+    if '-d' in argv:
+        debug = True
+        argv.remove('-d')
     if not argv:
-        shell()
+        shell(debug_mode=debug)
         return
     if '--version' in argv:
         print(__version__)
@@ -56,8 +59,6 @@ def main():
         print(f"    --help       See this message")
         print(f"    -d           Enable debug mode")
         return
-    if '-d' in argv:
-        debug = True
     for arg in argv:
         if os.path.exists(arg):
             run_file(arg, debug_mode=debug)
