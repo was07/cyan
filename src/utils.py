@@ -111,3 +111,21 @@ class RTError(Error):
             ctx = ctx.parent
         
         return 'Traceback:\n' + result
+
+
+class _clr:
+    RESET = "\u001b[0m"
+    DEBUG_CLR = "\u001b[33;1m"
+    SEPERATOR_CLR = ""
+
+
+class Printer:
+    @staticmethod
+    def debug_p(*values):
+        print(end=_clr.DEBUG_CLR)
+        print(*values)
+        print(end=_clr.RESET)
+    
+    @staticmethod
+    def seperator_p():
+        print(end=_clr.SEPERATOR_CLR)

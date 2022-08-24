@@ -1,13 +1,12 @@
+from math import degrees
 import sys
+import os
 
 from src.interpreter import run
 from src.__init__ import __version__
 
 
-DEBUG = 0
-
-
-def shell():
+def shell(debug_mode=False):
     print(f'Cyan {__version__} shell on {sys.platform}')
     while True:
         try:
@@ -15,7 +14,7 @@ def shell():
         except KeyboardInterrupt:
             print('\nExiting...'); sys.exit(0)
         
-        result, error = run('<stdin>', text, debug_mode=DEBUG)
+        result, error = run('<stdin>', text, debug_mode=debug_mode)
 
         if error:
             print(error)
@@ -23,11 +22,11 @@ def shell():
             print(result)
 
 
-def run_file(filename):
+def run_file(filename, debug_mode):
     with open(filename) as file:
         text = file.read()
 
-    result, error = run(filename, text, debug_mode=DEBUG)
+    result, error = run(filename, text, debug_mode=debug_mode)
 
     if error:
         print(error)
@@ -36,28 +35,32 @@ def run_file(filename):
 
 
 def main():
+    """
+    -d
+    --version
+    --help
+    file
+    """
+    debug = False
     argv = sys.argv[1:]
-    if len(argv):
-        if argv[0] in ('-d', '--debug'):
-            DEBUG = True
-            argv = argv[1:]
-        if len(argv):
-            if argv[0] == ('--version'):
-                print(__version__)
-                sys.exit(0)
-            if argv[0] == '--help':
-                print(f'Usage: {sys.argv[0]} [options] [file]')
-                print(f'Options:')
-                print(f'  -d, --debug    Enable debug mode')
-                print(f'  --version      Show version')
-                print(f'  --help         Show this help')
-                print(f'  file           Run the file')
-                sys.exit(0)
-            if len(argv) == 1:
-                run_file(argv[0])
-                sys.exit(0)
-
-    shell()
+    if not argv:
+        shell()
+        return
+    if '--version' in argv:
+        print(__version__)
+        return
+    if '--help' in argv:
+        print(f"Cyan {__version__}")
+        print(f"")
+        print(f"    --version    See Cyan version")
+        print(f"    --help       See this message")
+        print(f"    -d           Enable debug mode")
+        return
+    if '-d' in argv:
+        debug = True
+    for arg in argv:
+        if os.path.exists(arg):
+            run_file(arg, debug_mode=debug)
 
     
 if __name__ == '__main__':

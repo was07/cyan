@@ -5,7 +5,7 @@ from src.utils import RTError
 # for type hinting
 from typing import Optional
 import src.ast_parser as ast_parser
-from src.utils import Pos
+from src.utils import Pos, Printer
 
 # for run function
 from src.tokenizer import tokenize
@@ -533,7 +533,7 @@ def interpret(node, context) -> RTResult:
 def run(file_name, text, debug_mode=False):
     tokens, error = tokenize(file_name, text)
     if debug_mode:
-        print('TOKENS:', *tokens)
+        Printer.debug_p('TOKENS:', *tokens)
     
     if error is not None:
         return None, error
@@ -541,8 +541,8 @@ def run(file_name, text, debug_mode=False):
     node, parse_error = make_ast(tokens)
     
     if debug_mode:
-        print('NODE  :', node)
-        print('------')
+        Printer.debug_p('NODE  :', node)
+        Printer.debug_p('------')
     
     if parse_error is not None:
         return None, parse_error
