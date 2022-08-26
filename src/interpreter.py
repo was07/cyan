@@ -360,6 +360,16 @@ class Interpreter:
     def no_visit_method(self, node, context):
         raise Exception(f'visit_{type(node).__name__} method is not defined')
     
+    def visit_StatementsNode(self, node: ast_parser.StatementsNode, context):
+        res = RTResult()
+        nodes = []
+
+        for statement in node.statements:
+            nodes.append(res.register(self.visit(statement, context)))
+            if res.error: return res
+        
+        return res
+            
     @staticmethod
     def visit_NumberNode(node: ast_parser.NumberNode, context):
         return RTResult().success(

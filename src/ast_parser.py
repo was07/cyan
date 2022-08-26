@@ -19,6 +19,14 @@ class Node:
         return self
 
 
+class StatementsNode(Node):
+    def __init__(self, statements, pos_start, pos_end):
+        self.statements = statements
+
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+
 class NumberNode(Node):
     def __init__(self, tok):
         self.tok = tok
@@ -129,8 +137,14 @@ class ParseResult:
     def __init__(self):
         self.error = None
         self.node = None
+        self.last_registered_advance_count = 0
         self.advancements = 0
+        self.to_reverse_count = 0
     
+    def register_advancement(self):
+        self.last_registered_advance_count = 1
+        self.advancements += 1
+
     def register_adv(self):
         self.advancements += 1
         pass
@@ -139,6 +153,12 @@ class ParseResult:
         self.advancements += res.advancements
         if res.error: self.error = res.error
         return res.node
+    
+    def try_register(self, res):
+        if res.error:
+            self.to_reverse_count = res.advancements
+            return None
+        return self.register(res)
     
     def success(self, node):
         self.node = node
@@ -163,18 +183,62 @@ class Parser:
             self.cur_tok: Token = self.tokens[self.cur_index]
         return self.cur_tok
     
+    def reverse(self, amount=1):
+        self.cur_index -= amount
+        self.update_current_tok()
+        return self.cur_tok
+    
+    def update_current_tok(self):
+        if self.cur_index >= 0 and self.cur_index < len(self.tokens):
+            self.cur_tok = self.tokens[self.cur_index]
+    
     def next_tok(self):
         if self.cur_index+1 < len(self.tokens):
             return self.tokens[self.cur_index+1]
 
     def parse(self):
-        res = self.expr()
+        res = self.statements()
         if res.error is None and (not self.cur_tok.is_type(T.EOF, T.NEWLINE)):
             res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, 'Invalid Syntax').set_ecode('p')
             )
             return res
         return res
+    
+    def statements(self):
+        res = ParseResult()
+        pos_start = self.cur_tok.pos_start.copy()
+        statements = []
+
+        while self.cur_tok.is_type(T.NEWLINE, T.SEMI_COLON):
+            res.register_adv()
+            self.advance()
+
+        statement = res.register(self.expr())
+        if res.error: return res
+        statements.append(statement)
+
+        more_statements = True
+
+        while True:
+            newline_count = 0
+            while self.cur_tok.is_type(T.NEWLINE, T.SEMI_COLON):
+                res.register_adv()
+                self.advance()
+                newline_count += 1
+            if not newline_count:
+                more_statements = False
+            
+            if not more_statements: break
+            statement =  res.try_register(self.expr())
+
+            if not statement:
+                self.reverse(res.to_reverse_count)
+                more_statements = False
+                continue
+            statements.append(statement)
+        
+        return res.success(StatementsNode(statements, pos_start, self.cur_tok.pos_end))
 
     def expr(self):
         res = ParseResult()

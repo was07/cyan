@@ -7,7 +7,7 @@ from src.__init__ import __version__
 
 
 def shell(debug_mode=False):
-    print(f'Cyan {__version__} shell on {sys.platform}')
+    print(f'Cyan {__version__} shell on {sys.platform}' + (' (with debug mode enabled)' if debug_mode else ''))
     while True:
         try:
             text = input('>>> ')
@@ -30,8 +30,6 @@ def run_file(filename, debug_mode):
 
     if error:
         print(error)
-    else:
-        print(result)
 
 
 def main():

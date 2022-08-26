@@ -23,6 +23,8 @@ python Cyan
 ```
 It will start the Cyan shell.
 
+To run a file, use `python Cyan filename.cy`
+
 To see other options, use `python Cyan --help`
 
 ## Example Code

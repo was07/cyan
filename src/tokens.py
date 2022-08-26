@@ -32,6 +32,7 @@ class T:
     KW = 'KW'
     
     COLON = 'COLON'
+    SEMI_COLON = 'SEMI_COLON'
     COMMA = 'COMMA'
     NEWLINE = 'NEWLINE'
     EOF = 'EOF'

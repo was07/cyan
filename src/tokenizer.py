@@ -12,6 +12,7 @@ car_tok_map = {
     '{': T.L_CPAREN,
     '}': T.R_CPAREN,
     ':': T.COLON,
+    ';': T.SEMI_COLON,
     ',': T.COMMA
 }
 
