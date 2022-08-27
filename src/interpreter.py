@@ -368,8 +368,8 @@ class Interpreter:
             nodes.append(res.register(self.visit(statement, context)))
             if res.error: return res
         
-        return res
-            
+        if len(nodes) == 1: return res.success(nodes[0])
+    
     @staticmethod
     def visit_NumberNode(node: ast_parser.NumberNode, context):
         return RTResult().success(
