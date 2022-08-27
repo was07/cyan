@@ -241,6 +241,32 @@ class Number(Object):
         return Bool(int(not self.value)).set_context(self.context), None
 
 
+class String(Object):
+    def __init__(self, value):
+        self.value = value
+    
+    def __repr__(self):
+        return f"'{self.value}'"
+    
+    def __str__(self):
+        return self.value
+    
+    def copy(self):
+        return String(self.value).set_pos(self.pos_start, self.pos_end).set_context(self.context)
+    
+    def operate_plus(self, other):
+        if isinstance(other, String):
+            return String(self.value + other.value).set_context(self.context), None
+        else:
+            return Object.operate_plus(self, other)
+    
+    def compare_eq(self, other):
+        return Bool(self.value == other.value).set_context(self.context), None
+    
+    def compare_ne(self, other):
+        return Bool(self.value != other.value).set_context(self.context), None
+
+
 class Function(Object):
     def __init__(self, name, parameters, body):
         Object.__init__(self)
@@ -356,9 +382,10 @@ class Interpreter:
         method_name = f'visit_{type(node).__name__}'
         method = getattr(self, method_name, self.no_visit_method)
         return method(node, context)
-
+        
     def no_visit_method(self, node, context):
-        raise Exception(f'visit_{type(node).__name__} method is not defined')
+        Printer.internal_error_p(f'Interpreter: visit_{type(node).__name__} method is not defined')
+        exit()
     
     def visit_StatementsNode(self, node: ast_parser.StatementsNode, context):
         res = RTResult()
@@ -369,6 +396,7 @@ class Interpreter:
             if res.error: return res
         
         if len(nodes) == 1: return res.success(nodes[0])
+        return res
     
     @staticmethod
     def visit_NumberNode(node: ast_parser.NumberNode, context):
@@ -386,6 +414,12 @@ class Interpreter:
         elif node.tok.value == 'none':
             return res.success(NoneObj().set_pos(node.pos_start, node.pos_end).set_context(context))
     
+    @staticmethod
+    def visit_StringNode(node: ast_parser.StringNode, context):
+        return RTResult().success(
+            String(node.tok.value).set_pos(node.pos_start, node.pos_end).set_context(context)
+        )
+
     @staticmethod
     def visit_VarAccessNode(node: ast_parser.VarAccessNode, context):
         res = RTResult()

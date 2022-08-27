@@ -116,6 +116,7 @@ class RTError(Error):
 class _clr:
     RESET = "\u001b[0m"
     DEBUG_CLR = "\u001b[33;1m"
+    ERROR_CLR = "\u001b[31;1m"
     SEPERATOR_CLR = ""
 
 
@@ -129,3 +130,9 @@ class Printer:
     @staticmethod
     def seperator_p():
         print(end=_clr.SEPERATOR_CLR)
+    
+    @staticmethod
+    def internal_error_p(*values):
+        print(end=_clr.ERROR_CLR)
+        print(*values)
+        print(end=_clr.RESET)

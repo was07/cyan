@@ -18,6 +18,7 @@ power      : call (POW factor)*
 call       : atom IDENTIFIER? (L_PAREN (expr (COMMA expr)*)? R_PAREN)?
 
 atom       : INT | FLOAT | IDENTIFIER | LITERAL
+           : STRING
            : L_PAREN expr R_PAREN
            : if-expr
            : while-expr

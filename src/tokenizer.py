@@ -45,11 +45,13 @@ class Tokenizer:
             if self.car.isnumeric():
                 tokens.append(self.get_number())
                 continue
-            if self.car.isalpha():
+            elif self.car.isalpha():
                 tokens.append(self.get_identifier())
                 continue
             elif self.car in car_tok_map:
                 tokens.append(Token(car_tok_map[self.car], pos_start=self.pos))
+            elif self.car in ('\'', '"'):
+                tokens.append(self.get_string())
             elif self.car == '*':
                 tokens.append(self.get_mul_or_paw())
                 continue
@@ -94,6 +96,19 @@ class Tokenizer:
             return Token(T.INT, int(num_str), pos_start=pos_start, pos_end=self.pos.copy())
         else:
             return Token(T.FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos.copy())
+    
+    def get_string(self):
+        # self.car can be ' or "
+        start_pos = self.pos.copy()
+        content = ''
+        quote_used = self.car
+        self.advance()
+        
+        while self.car != quote_used:
+            content += self.car
+            self.advance()
+        
+        return Token(T.STRING, content, pos_start=start_pos, pos_end=self.pos.copy())
     
     def get_mul_or_paw(self):
         start_pos = self.pos.copy()

@@ -31,7 +31,9 @@ To see other options, use `python Cyan --help`
 ## Example Code
 
 ```py
-Cyan 1.0.0 shell on win32
+Cyan 1.0.1 shell on win32
+>>> "ab" + 'cd'
+abcd
 >>> 7 ** 2
 49
 >>> fun square(i): i ** 2
@@ -40,8 +42,8 @@ Cyan 1.0.0 shell on win32
 16
 >>> let a = 2
 2
->>> if a != 2 then 100 else 200
-200
+>>> if a != 2 then 'no' else 'yes'
+yes
 >>> print(a)
 2   
 None

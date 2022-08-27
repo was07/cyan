@@ -6,6 +6,7 @@ from src.utils import Pos
 class T:
     INT = 'INT'
     FLOAT = 'FLOAT'
+    STRING = 'STRING'
     
     PLUS = 'PLUS'
     MINUS = 'MINUS'

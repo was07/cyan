@@ -17,6 +17,9 @@ class Node:
         self.pos_start = pos_start
         self.pos_end = pos_end
         return self
+    
+    def __repr__(self):
+        return type(self).__name__
 
 
 class StatementsNode(Node):
@@ -25,6 +28,9 @@ class StatementsNode(Node):
 
         self.pos_start = pos_start
         self.pos_end = pos_end
+    
+    def __repr__(self):
+        return f"Statements({', '.join([repr(statement) for statement in self.statements])})"
 
 
 class NumberNode(Node):
@@ -47,6 +53,14 @@ class LiteralNode(Node):
     
     def __repr__(self):
         return self.tok.value
+
+
+class StringNode(Node):
+    def __init__(self, tok):
+        self.tok = tok
+        
+        self.pos_start = self.tok.pos_start
+        self.pos_end = self.tok.pos_end
 
 
 class BinOpNode(Node):
@@ -352,6 +366,11 @@ class Parser:
             res.register_adv()
             self.advance()
             return res.success(VarAccessNode(tok))
+        
+        elif tok.is_type(T.STRING):
+            res.register_adv()
+            self.advance()
+            return res.success(StringNode(tok))
         
         elif tok.is_equals(T.KW, 'if'):
             node = res.register(self.if_expr())
