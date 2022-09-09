@@ -39,6 +39,9 @@ class Object:
     def __repr__(self):
         return f"<object-of-type-{self.type_name}>"
 
+    def __str__(self):
+        return f"<object-of-type-{self.type_name}>"
+
     # arithmetic operations
     def operate_plus(self, other):
         return None, self.not_supported('+ operator', other)
@@ -98,6 +101,15 @@ class NoneObj(Object):
     def __repr__(self):
         return 'none'
 
+    def __str__(self):
+        return 'none'
+    
+    def is_truthy(self):
+        return Bool(False)
+    
+    def copy(self):
+        return NoneObj()
+
 
 class Bool(Object):
     def __init__(self, value):
@@ -108,18 +120,30 @@ class Bool(Object):
         self.pos_end = None
         self.context = None
     
+    @staticmethod
+    def converter(obj: Object):
+        return RTResult().success(Bool(obj.is_truthy()))
+    
     def __repr__(self):
         return 'true' if self.value else 'false'
     
     def __bool__(self):
         return self.value
     
+    def __str__(self):
+        return 'true' if self.value else 'false'
+
     def is_truthy(self):
         return Bool(self.value)
-    
+
     def copy(self):
         return Bool(self.value).set_pos(self.pos_start, self.pos_end).set_context(self.context)
     
+    # converters
+    def to_Number(self):
+        return RTResult().success(Number(int(self.value)))
+
+    # logical operators
     def logic_and(self, other):
         return Bool(self.value and other.value).set_context(self.context), None
     
@@ -132,7 +156,7 @@ class Bool(Object):
 
 class Number(Object):
     def __init__(self, value):
-        Object.__init__(self, 'Number')
+        super().__init__('Number')
         self.value = value
         
         self.pos_start = None
@@ -144,6 +168,20 @@ class Number(Object):
     
     def __bool__(self):
         return bool(self.value)
+    
+    def __str__(self):
+        return str(self.value)
+
+    @staticmethod
+    def converter(obj: Object = None):
+        if obj is None:
+            obj = Number(0)
+        if isinstance(obj, Number):
+            return RTResult().success(Number(obj.value))
+        if hasattr(obj, 'to_Number'):
+            return obj.to_Number()
+        else:
+            return RTResult().failure(RTError(obj.pos_start, obj.pos_end, f"Cannot convert {obj.type_name} to Number", obj.context))
 
     def copy(self):
         copy = Number(self.value)
@@ -242,24 +280,52 @@ class Number(Object):
 
 
 class String(Object):
-    def __init__(self, value):
+    def __init__(self, value: str):
+        super().__init__('String')
         self.value = value
     
+    @staticmethod
+    def converter(obj: Object = None):
+        if obj is None:
+            return RTResult().success(String(''))
+        elif isinstance(obj, String):
+            return RTResult().success(String(obj.value))
+        else:
+            return RTResult().success(String(obj))
+
     def __repr__(self):
         return f"'{self.value}'"
     
     def __str__(self):
-        return self.value
+        return str(self.value)
     
     def copy(self):
         return String(self.value).set_pos(self.pos_start, self.pos_end).set_context(self.context)
     
+    def is_truthy(self):
+        return Bool(self.value)
+    
+    # converters
+    def to_Number(self):
+        self.value: str
+        num_value = None
+        try:
+            num_value = int(self.value)
+        except ValueError:
+            try:
+                num_value = float(self.value)
+            except ValueError:
+                return RTResult().failure(RTError(self.pos_start, self.pos_end, f"Cannot convert to Number: {self.value}", self.context))
+        return RTResult().success(Number(num_value))
+
+    # arithmetic operations
     def operate_plus(self, other):
         if isinstance(other, String):
             return String(self.value + other.value).set_context(self.context), None
         else:
             return Object.operate_plus(self, other)
     
+    # boolean operations
     def compare_eq(self, other):
         return Bool(self.value == other.value).set_context(self.context), None
     
@@ -277,6 +343,9 @@ class Function(Object):
         self.body = body
     
     def __repr__(self):
+        return f"<Function {self.name}>"
+    
+    def __str__(self):
         return f"<Function {self.name}>"
     
     def execute(self, args):
@@ -309,22 +378,25 @@ class Function(Object):
 
 
 class BuiltInFunction(Object):
-    def __init__(self, name, function):
+    def __init__(self, name: str, function):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
         self.name = name
-        self.function = function
+        self.function = function  # a function that has to return RTResult object
     
     def __repr__(self):
         return f"<Built-in Function {self.name}>"
     
+    def __str__(self):
+        return f"<Built-in Function {self.name}>"
+
     def copy(self):
         copy = BuiltInFunction(self.name, self.function)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
     
-    def execute(self, args):
+    def execute(self, args: list):
         res = RTResult()
         
         value = res.register(self.function(*args))
@@ -346,7 +418,7 @@ class RTResult:
         self.value = value
         return self
 
-    def failure(self, error):
+    def failure(self, error: RTError):
         self.error = error
         return self
 
@@ -562,13 +634,20 @@ class Interpreter:
         return res.success(return_value)
 
 
-def build_in_print(*nodes):
-    print(*nodes)
+def build_in_out(*nodes):
+    if len(nodes) != 1:
+        Printer.output_p(' '.join(map(str, nodes)))
+    else:
+        Printer.output_p(str(nodes[0]))
+    Printer.output_p('\n')
     return RTResult().success(NoneObj())
 
 
 GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set('print', BuiltInFunction('print', build_in_print))
+GLOBAL_SYMBOL_MAP.set('out', BuiltInFunction('out', build_in_out))
+GLOBAL_SYMBOL_MAP.set('Bool', BuiltInFunction('Bool', Bool.converter))
+GLOBAL_SYMBOL_MAP.set('Num', BuiltInFunction('Num', Number.converter))
+GLOBAL_SYMBOL_MAP.set('Str', BuiltInFunction('Str', String.converter))
 
 
 def interpret(node, context) -> RTResult:

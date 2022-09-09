@@ -145,6 +145,9 @@ class FuncCallNode(Node):
     def __init__(self, node_to_call: Node, arguments: list[Node]):
         self.node_to_call = node_to_call
         self.arguments = arguments
+    
+    def __repr__(self):
+        return f'(FuncCall:{self.node_to_call})'
 
 
 class ParseResult:
@@ -213,6 +216,8 @@ class Parser:
     def parse(self):
         res = self.statements()
         if res.error is None and (not self.cur_tok.is_type(T.EOF, T.NEWLINE)):
+            from src.utils import Printer
+            Printer.debug_p(self.cur_tok)
             res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, 'Invalid Syntax').set_ecode('p')
             )
@@ -564,7 +569,7 @@ class Parser:
         res.register_adv()
         self.advance()
         
-        expr = res.register(self.expr())
+        expr = res.register(self.statements())
         if res.error: return res
         
         if not self.cur_tok.is_type(T.R_CPAREN):

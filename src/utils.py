@@ -1,6 +1,7 @@
 """
 Pos and Errors
 """
+import sys
 
 
 class Pos:
@@ -136,3 +137,7 @@ class Printer:
         print(end=_clr.ERROR_CLR)
         print(*values)
         print(end=_clr.RESET)
+    
+    @staticmethod
+    def output_p(text, end=''):
+        sys.stdout.write(text + end)

@@ -30,6 +30,7 @@ To see other options, use `python Cyan --help`
 
 ## Example Code
 
+Repl
 ```py
 Cyan 1.0.1 shell on win32
 >>> "ab" + 'cd'
@@ -40,13 +41,43 @@ abcd
 <Function square>
 >>> square(4)
 16
->>> let a = 2
-2
+>>> let a = Bool(11)
+true
 >>> if a != 2 then 'no' else 'yes'
 yes
->>> print(a)
+>>> out(a)
 2   
 None
 >>> while a < 5 {let a = a + 1}
 None
 ```
+
+Code
+```py
+let a = 1
+while a <= 5 {
+    out(a)
+    let a = a + 1
+}
+```
+Output
+```
+1
+2
+3
+4
+5
+```
+
+## Docs (in progress)
+
+| Data type | Converter   | examples                             |   |
+|-----------|-------------|--------------------------------------|---|
+| String    | `Str()`     | `'ab'`, `"cd"`                       |   |
+| Number    | `Num()`     | `1`, `2.45`, `1.` (`.1` is invalid)  |   |
+| Boolean   | `Bool()`    | `true`, `false`                      |   |
+| None      |             | `none`                               |   |
+
+| Build-in Function | Usage                |
+|-------------------|----------------------|
+| `out()`           | make standard output |
