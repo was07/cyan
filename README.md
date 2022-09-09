@@ -71,12 +71,12 @@ Output
 
 ## Docs (in progress)
 
-| Data type | Converter   | examples                             |   |
-|-----------|-------------|--------------------------------------|---|
-| String    | `Str()`     | `'ab'`, `"cd"`                       |   |
-| Number    | `Num()`     | `1`, `2.45`, `1.` (`.1` is invalid)  |   |
-| Boolean   | `Bool()`    | `true`, `false`                      |   |
-| None      |             | `none`                               |   |
+| Data type | Converter   | examples                             |
+|-----------|-------------|--------------------------------------|
+| String    | `Str()`     | `'ab'`, `"cd"`                       |
+| Number    | `Num()`     | `1`, `2.45`, `1.` (`.1` is invalid)  |
+| Boolean   | `Bool()`    | `true`, `false`                      |
+| None      |             | `none`                               |
 
 | Build-in Function | Usage                |
 |-------------------|----------------------|
