@@ -28,4 +28,4 @@ if-expr    : KW:if comp-expr KW:then expr KW:else expr
 
 while-expr : KW:while comp-expr L_CPAREN statements R_CPAREN
 
-func-def   : KW:fun L_PAREN (IDENTIFIER (COMMA IDENTIFIER)*)? R_PAREN COLON expr
+func-def   : KW:fun L_PAREN (IDENTIFIER (COMMA IDENTIFIER)*)? R_PAREN L_CPAREN statements R_CPAREN

@@ -32,12 +32,12 @@ To see other options, use `python Cyan --help`
 
 Repl
 ```py
-Cyan 1.0.1 shell on win32
+Cyan 1.1.1 shell on win32
 >>> "ab" + 'cd'
 abcd
 >>> 7 ** 2
 49
->>> fun square(i): i ** 2
+>>> fun square(i) {i ** 2}
 <Function square>
 >>> square(4)
 16

@@ -538,25 +538,34 @@ class Parser:
         
         res.register_adv()
         self.advance()
-        if not self.cur_tok.is_type(T.COLON):
+        
+        if not self.cur_tok.is_type(T.L_CPAREN):
             return res.failure(
-                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected ':'")
+                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '{'")
             )
         res.register_adv()
         self.advance()
         
-        expr = res.register(self.expr())
-        if res.error:
-            return res
+        statements = res.register(self.statements())
+        if res.error: return res
+        
+        if not self.cur_tok.is_type(T.R_CPAREN):
+            return res.failure(
+                InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '}'")
+            )
+        
+        res.register_adv()
+        self.advance()
 
         return res.success(
-            FuncDefNode(name, parameters, expr).set_pos(pos_start, expr.pos_end)
+            FuncDefNode(name, parameters, statements).set_pos(pos_start, statements.pos_end)
         )
     
     def while_expr(self):
         # self.cur_tok is KW:while
         res = ParseResult()
         res.register_adv()
+        p_start = self.cur_tok.pos_start.copy()
         self.advance()
         
         cond = res.register(self.comp_expr())
@@ -569,18 +578,19 @@ class Parser:
         res.register_adv()
         self.advance()
         
-        expr = res.register(self.statements())
+        statements = res.register(self.statements())
         if res.error: return res
         
         if not self.cur_tok.is_type(T.R_CPAREN):
             return res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, "Expected '}'")
             )
+        p_end = self.cur_tok.pos_end.copy()
         
         res.register_adv()
         self.advance()
         
-        return res.success(WhileNode(cond, expr))
+        return res.success(WhileNode(cond, statements).set_pos(cond.pos_start, p_end))
 
 
 def make_ast(tokens):
