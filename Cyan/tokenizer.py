@@ -1,6 +1,6 @@
-from src.tokens import T, Token
+from tokens import T, Token
 
-from src.utils import Pos, InvalidCharacterError, InvalidSyntaxError
+from utils import Pos, InvalidCharacterError, InvalidSyntaxError
 
 
 car_tok_map = {

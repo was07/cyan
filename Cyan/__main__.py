@@ -1,9 +1,8 @@
-from math import degrees
 import sys
 import os
 
-from src.interpreter import run
-from src.__init__ import __version__
+from interpreter import run
+from __init__ import __version__
 
 
 def shell(debug_mode=False):

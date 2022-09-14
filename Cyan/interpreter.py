@@ -1,15 +1,15 @@
-from src.tokens import T
+from tokens import T
 
-from src.utils import RTError
+from utils import RTError
 
 # for type hinting
 from typing import Optional
-import src.ast_parser as ast_parser
-from src.utils import Pos, Printer
+import ast_parser as ast_parser
+from utils import Pos, Printer
 
 # for run function
-from src.tokenizer import tokenize
-from src.ast_parser import make_ast
+from tokenizer import tokenize
+from ast_parser import make_ast
 
 
 class Object:

@@ -20,6 +20,7 @@ Pre-requiestes: `git` and `python3`
 Commands:
 ```bash
 git clone https://github.com/was07/Cyan
+cd Cyan
 python Cyan
 ```
 It will start the Cyan shell.

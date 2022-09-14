@@ -1,12 +1,12 @@
-from src.tokens import T
+from tokens import T
 
-from src.utils import InvalidSyntaxError
+from utils import InvalidSyntaxError
 
 
 # for type hinting
 from typing import Optional
-from src.tokens import Token
-from src.utils import Pos
+from tokens import Token
+from utils import Pos
 
 
 class Node:
@@ -216,7 +216,7 @@ class Parser:
     def parse(self):
         res = self.statements()
         if res.error is None and (not self.cur_tok.is_type(T.EOF, T.NEWLINE)):
-            from src.utils import Printer
+            from Cyan.utils import Printer
             Printer.debug_p(self.cur_tok)
             res.failure(
                 InvalidSyntaxError(self.cur_tok.pos_start, self.cur_tok.pos_end, 'Invalid Syntax').set_ecode('p')

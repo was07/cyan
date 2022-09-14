@@ -1,6 +1,6 @@
 # for type hinting
 from typing import Optional
-from src.utils import Pos
+from utils import Pos
 
 
 class T:
