@@ -1,6 +1,5 @@
-from tokens import T, Token
-
-from utils import Pos, InvalidCharacterError, InvalidSyntaxError
+from Cyan.tokens import T, Token
+from Cyan.utils import Pos, InvalidCharacterError, InvalidSyntaxError
 
 
 car_tok_map = {

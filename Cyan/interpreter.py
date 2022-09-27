@@ -1,15 +1,15 @@
-from tokens import T
+from Cyan.tokens import T
 
-from utils import RTError
+from Cyan.utils import RTError
 
 # for type hinting
 from typing import Optional
-import ast_parser as ast_parser
-from utils import Pos, Printer
+import Cyan.ast_parser as ast
+from Cyan.utils import Pos, Printer
 
 # for run function
-from tokenizer import tokenize
-from ast_parser import make_ast
+from Cyan.tokenizer import tokenize
+from Cyan.ast_parser import make_ast
 
 
 class Object:
@@ -500,7 +500,7 @@ class Interpreter:
         )
         exit()
 
-    def visit_StatementsNode(self, node: ast_parser.StatementsNode, context):
+    def visit_StatementsNode(self, node: ast.StatementsNode, context):
         res = RTResult()
         nodes = []
 
@@ -514,7 +514,7 @@ class Interpreter:
         return res
 
     @staticmethod
-    def visit_NumberNode(node: ast_parser.NumberNode, context):
+    def visit_NumberNode(node: ast.NumberNode, context):
         return RTResult().success(
             Number(node.tok.value)
             .set_pos(node.pos_start, node.pos_end)
@@ -522,7 +522,7 @@ class Interpreter:
         )
 
     @staticmethod
-    def visit_LiteralNode(node: ast_parser.LiteralNode, context):
+    def visit_LiteralNode(node: ast.LiteralNode, context):
         res = RTResult()
         if node.tok.value == "true":
             return res.success(
@@ -538,7 +538,7 @@ class Interpreter:
             )
 
     @staticmethod
-    def visit_StringNode(node: ast_parser.StringNode, context):
+    def visit_StringNode(node: ast.StringNode, context):
         return RTResult().success(
             String(node.tok.value)
             .set_pos(node.pos_start, node.pos_end)
@@ -546,7 +546,7 @@ class Interpreter:
         )
 
     @staticmethod
-    def visit_VarAccessNode(node: ast_parser.VarAccessNode, context):
+    def visit_VarAccessNode(node: ast.VarAccessNode, context):
         res = RTResult()
         var_name = node.var_name.value
         value = context.symbol_map.get(var_name)
@@ -562,7 +562,7 @@ class Interpreter:
 
         return res.success(value)
 
-    def visit_VarAssignNode(self, node: ast_parser.VarAssignNode, context):
+    def visit_VarAssignNode(self, node: ast.VarAssignNode, context):
         res = RTResult()
         var_name = node.var_name.value
 
@@ -573,7 +573,7 @@ class Interpreter:
         context.symbol_map.set(var_name, value)
         return res.success(value)
 
-    def visit_BinOpNode(self, node: ast_parser.BinOpNode, context):
+    def visit_BinOpNode(self, node: ast.BinOpNode, context):
         res = RTResult()
         left = res.register(self.visit(node.left, context))
         if res.error:
@@ -618,7 +618,7 @@ class Interpreter:
         else:
             return res.success(result.set_pos(node.pos_start, node.pos_end))
 
-    def visit_UnaryOpNode(self, node: ast_parser.UnaryOpNode, context):
+    def visit_UnaryOpNode(self, node: ast.UnaryOpNode, context):
         res = RTResult()
         number = res.register(self.visit(node.node, context))
         if res.error:
@@ -635,7 +635,7 @@ class Interpreter:
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
 
-    def visit_IfBlockNode(self, node: ast_parser.IfBlockNode, context):
+    def visit_IfBlockNode(self, node: ast.IfBlockNode, context):
         res = RTResult()
         cond = res.register(self.visit(node.case[0], context))
         if res.error:
@@ -649,7 +649,7 @@ class Interpreter:
             return res
         return res.success(value)
 
-    def visit_WhileNode(self, node: ast_parser.WhileNode, context):
+    def visit_WhileNode(self, node: ast.WhileNode, context):
         res = RTResult()
         cond = res.register(self.visit(node.condition, context))
         if res.error:
@@ -666,7 +666,7 @@ class Interpreter:
         return res.success(NoneObj())
 
     @staticmethod
-    def visit_FuncDefNode(node: ast_parser.FuncDefNode, context):
+    def visit_FuncDefNode(node: ast.FuncDefNode, context):
         res = RTResult()
 
         func = (
@@ -678,7 +678,7 @@ class Interpreter:
 
         return res.success(func)
 
-    def visit_FuncCallNode(self, node: ast_parser.FuncCallNode, context):
+    def visit_FuncCallNode(self, node: ast.FuncCallNode, context):
         res = RTResult()
         args = []
 

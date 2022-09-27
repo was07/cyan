@@ -1,11 +1,10 @@
-from tokens import T
-
-from utils import InvalidSyntaxError
+from Cyan.tokens import T
+from Cyan.utils import InvalidSyntaxError
 
 # for type hinting
 from typing import Optional
-from tokens import Token
-from utils import Pos
+from Cyan.tokens import Token
+from Cyan.utils import Pos
 
 
 class Node:
