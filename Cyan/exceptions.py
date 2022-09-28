@@ -2,6 +2,8 @@ from cyan.utils import Pos, pos_highlight
 
 
 class Error:
+    __slots__ = ("name", "info", "pos_start", "pos_end", "ecode")
+
     def __init__(self, name: str, pos_start: Pos, pos_end: Pos, info: str):
         self.name = name
         self.info = info
@@ -39,6 +41,8 @@ class InvalidSyntaxError(Error):
 
 
 class RTError(Error):
+    __slots__ = (*Error.__slots__, "context")  # extends base slots with self.context
+
     def __init__(self, pos_start, pos_end, info, context):
         super().__init__("Runtime Error", pos_start, pos_end, info)
         self.context = context
@@ -56,7 +60,7 @@ class RTError(Error):
 
         while ctx:
             result = (
-                f"  File {pos.file_name}, line {str(pos.line_num + 1)}, in {ctx.display_name}.\n"
+                f"  File {pos.file_name}, line {str(pos.line_num + 1)}, in {ctx.name}.\n"
                 + result
             )
             pos = ctx.parent_entry_pos

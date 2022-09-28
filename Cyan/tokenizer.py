@@ -2,7 +2,9 @@ from cyan.tokens import T, Token
 from cyan.utils import Pos
 from cyan.exceptions import InvalidSyntaxError, InvalidCharacterError
 
-car_tok_map = {
+__all__ = ("Tokenizer", "tokenize")
+
+CHAR_TOKEN_MAP: dict[str, str] = {
     "+": T.PLUS,
     "-": T.MINUS,
     "/": T.DIV,
@@ -15,183 +17,201 @@ car_tok_map = {
     ",": T.COMMA,
 }
 
-literals = ("true", "false", "none")
-keywords = (
+LITERALS = frozenset(["true", "false", "none"])
+KEYWORDS = frozenset([
     "let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun"
-)
+])
+
+TokenResult = tuple[Token, None] | tuple[None, InvalidSyntaxError]
 
 
 # Tokenizer/Lexer
 class Tokenizer:
-    def __init__(self, file_name, text: str):
-        self.file_name = file_name
-        self.text = text
-        self.text_length = len(text)
-        self.car = None
-        self.pos: Pos = Pos(file_name, text, -1, 0, -1)
+    __slots__ = ("file_name", "text", "text_length", "char", "pos")
+
+    def __init__(self, file_name: str, text: str):
+        self.file_name: str = file_name
+        self.text: str = text
+        self.text_length: int = len(text)
+        self.char: str | None = None
+        self.pos = Pos(file_name, text, -1, 0, -1)
         self.advance()
 
-    def advance(self):
-        self.pos.advance(self.car == "\n")
+    def advance(self) -> None:
+        self.pos.advance(self.char == "\n")
         if self.pos.index >= self.text_length:
-            self.car = None
+            self.char = None
             return
-        self.car = self.text[self.pos.index]
 
-    def parse(self) -> tuple:
-        tokens = []
+        self.char = self.text[self.pos.index]
 
-        while self.car is not None:
-            if self.car.isnumeric():
-                tokens.append(self.get_number())
-                continue
-            elif self.car.isalpha():
-                tokens.append(self.get_identifier())
-                continue
-            elif self.car in car_tok_map:
-                tokens.append(
-                    Token(car_tok_map[self.car], pos_start=self.pos)
-                )
-            elif self.car in ("'", '"'):
-                tokens.append(self.get_string())
-            elif self.car == "*":
-                tokens.append(self.get_mul_or_paw())
-                continue
-            elif self.car == "!":
-                token, error = self.get_not_equals()
-                if error:
-                    return [], error
-                tokens.append(token)
-            elif self.car == "=":
-                tokens.append(self.get_equals())
-            elif self.car == "<":
-                tokens.append(self.get_less_then())
-            elif self.car == ">":
-                tokens.append(self.get_greater_then())
-            elif self.car.isspace():
-                if self.car == "\n":
-                    tokens.append(Token(T.NEWLINE, pos_start=self.pos))
-            else:
-                return [], InvalidCharacterError(
-                    self.pos, f"Character {repr(self.car)} is invalid."
-                )
-            self.advance()
-
-        tokens.append(Token(T.EOF, pos_start=self.pos))
-        return tokens, None
-
-    def get_number(self):
+    def get_number(self) -> Token:
         num_str = ""
         dot_count = 0
         pos_start = self.pos.copy()
 
-        while self.car is not None and (self.car.isnumeric() or self.car == "."):
-            if self.car == ".":
+        while (
+                self.char is not None
+                and self.char.isnumeric() or self.char == "."
+        ):
+            if self.char == ".":
                 if dot_count == 1:
                     break
                 dot_count += 1
                 num_str += "."
             else:
-                num_str += self.car
+                num_str += self.char
             self.advance()
 
         if dot_count == 0:
             return Token(
-                T.INT, int(num_str), pos_start=pos_start, pos_end=self.pos.copy()
+                T.INT, int(num_str), start_pos=pos_start, end_pos=self.pos.copy()
             )
         else:
             return Token(
-                T.FLOAT, float(num_str), pos_start=pos_start, pos_end=self.pos.copy()
+                T.FLOAT, float(num_str), start_pos=pos_start, end_pos=self.pos.copy()
             )
 
-    def get_string(self):
+    def get_string(self) -> Token:
         # self.car can be ' or "
         start_pos = self.pos.copy()
         content = ""
-        quote_used = self.car
+        quote_used = self.char
         self.advance()
 
-        while self.car != quote_used:
-            content += self.car
+        while self.char != quote_used:
+            content += self.char
             self.advance()
 
-        return Token(T.STRING, content, pos_start=start_pos, pos_end=self.pos.copy())
+        return Token(T.STRING, content, start_pos=start_pos, end_pos=self.pos.copy())
 
-    def get_mul_or_paw(self):
+    def get_mul_or_paw(self) -> Token:
         start_pos = self.pos.copy()
         self.advance()
 
-        if self.car == "*":
+        if self.char == "*":
             self.advance()
             tok = T.POW
         else:
             tok = T.MUL
 
-        return Token(tok, pos_start=start_pos, pos_end=self.pos.copy())
+        return Token(tok, start_pos=start_pos, end_pos=self.pos.copy())
 
-    def get_not_equals(self):
+    def get_not_equals(self) -> TokenResult:
         start_pos = self.pos.copy()
         self.advance()
 
-        if self.car == "=":
+        if self.char == "=":
             self.advance()
-            return Token(T.NE, pos_start=start_pos, pos_end=self.pos.copy()), None
+            return Token(T.NE, start_pos=start_pos, end_pos=self.pos.copy()), None
 
         self.advance()
         return None, InvalidSyntaxError(start_pos, self.pos.copy(), "Invalid Syntax")
 
-    def get_equals(self):
+    def get_equals(self) -> Token:
         tok_type = T.EQ
         start_pos = self.pos.copy()
         self.advance()
 
-        if self.car == "=":
+        if self.char == "=":
             tok_type = T.EE
             self.advance()
 
-        return Token(tok_type, pos_start=start_pos, pos_end=self.pos.copy())
+        return Token(tok_type, start_pos=start_pos, end_pos=self.pos.copy())
 
-    def get_less_then(self):
+    def get_less_then(self) -> Token:
         pos_start = self.pos.copy()
         tok_type = T.LT
         self.advance()
 
-        if self.car == "=":
+        if self.char == "=":
             tok_type = T.LTE
             self.advance()
 
-        return Token(tok_type, pos_start=pos_start, pos_end=self.pos.copy())
+        return Token(
+            tok_type, start_pos=pos_start, end_pos=self.pos.copy()
+        )
 
-    def get_greater_then(self):
+    def get_greater_then(self) -> Token:
         pos_start = self.pos.copy()
         tok_type = T.GT
         self.advance()
 
-        if self.car == "=":
+        if self.char == "=":
             tok_type = T.GTE
             self.advance()
 
-        return Token(tok_type, pos_start=pos_start, pos_end=self.pos.copy())
+        return Token(
+            tok_type, start_pos=pos_start, end_pos=self.pos.copy()
+        )
 
-    def get_identifier(self):
-        iden: str = ""
+    def get_identifier(self) -> Token:
+        ident: str = ""
         pos_start = self.pos.copy()
 
-        while self.car is not None and (self.car.isalnum() or self.car == "_"):
-            iden += self.car
+        while self.char is not None and (self.char.isalnum() or self.char == "_"):
+            ident += self.char
             self.advance()
 
-        if iden in keywords:
+        if ident in KEYWORDS:
             toke_type = T.KW
-        elif iden in literals:
+        elif ident in LITERALS:
             toke_type = T.LITERAL
         else:
             toke_type = T.IDENTIFIER
 
-        return Token(toke_type, iden, pos_start, self.pos.copy())
+        return Token(
+            toke_type, ident, pos_start, self.pos.copy()
+        )
+
+    def parse(self):
+        tokens = []
+
+        while self.char is not None:
+            if self.char.isnumeric():
+                tokens.append(self.get_number())
+                continue
+            elif self.char.isalpha():
+                tokens.append(self.get_identifier())
+                continue
+            elif self.char in CHAR_TOKEN_MAP:
+                tokens.append(
+                    Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos)
+                )
+            elif self.char in ("'", '"'):
+                tokens.append(self.get_string())
+            elif self.char == "*":
+                tokens.append(self.get_mul_or_paw())
+                continue
+            elif self.char == "!":
+                token, error = self.get_not_equals()
+                if error:
+                    return [], error
+                tokens.append(token)
+            elif self.char == "=":
+                tokens.append(self.get_equals())
+            elif self.char == "<":
+                tokens.append(self.get_less_then())
+            elif self.char == ">":
+                tokens.append(self.get_greater_then())
+            elif self.char.isspace():
+                if self.char == "\n":
+                    tokens.append(
+                        Token(T.NEWLINE, start_pos=self.pos)
+                    )
+            else:
+                return [], InvalidCharacterError(
+                    self.pos, f"Character {repr(self.char)} is invalid."
+                )
+            self.advance()
+
+        tokens.append(
+            Token(T.EOF, start_pos=self.pos)
+        )
+        return tokens, None
 
 
-def tokenize(file_name, text: str):
+def tokenize(file_name: str, text: str):
     maker = Tokenizer(file_name, text)
     res = maker.parse()
     return res

@@ -1,26 +1,34 @@
-# for type hinting
-from typing import Optional
-from cyan.tokens import Token
-from cyan.utils import Pos
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Optional, TypeAlias, TypeVar
+    from cyan.tokens import Token
+    from cyan.utils import Pos
+    NodeSelf: TypeAlias = TypeVar("NodeSelf", bound="Node")
+
+
+__all__ = ("Node", "StatementsNode", "NumberNode", "LiteralNode", "StringNode", "BinOpNode", "UnaryOpNode", "VarAccessNode", "VarAssignNode", "IfBlockNode", "WhileNode", "FuncDefNode", "FuncCallNode")
 
 
 class Node:
-    pos_start: Optional[Pos]
-    pos_end: Optional[Pos]
+    start_pos: Optional[Pos]
+    end_pos: Optional[Pos]
 
-    def set_pos(self, pos_start: Pos, pos_end: Optional[Pos] = None):
-        self.pos_start = pos_start
+    def set_pos(self, pos_start: Pos, pos_end: Optional[Pos] = None) -> NodeSelf:
+        self.start_pos = pos_start
         if pos_end is not None:
-            self.pos_end = pos_end
+            self.end_pos = pos_end
 
         return self
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return type(self).__name__
 
 
 class StatementsNode(Node):
-    def __init__(self, statements, pos_start, pos_end):
+    def __init__(self, statements: list[Node], pos_start: Optional[Pos], pos_end: Optional[Pos]):
         self.statements = statements
         super().set_pos(pos_start, pos_end)
 
@@ -30,7 +38,7 @@ class StatementsNode(Node):
 
 
 class NumberNode(Node):
-    def __init__(self, tok):
+    def __init__(self, tok: Optional[Token]):
         self.tok = tok
         super().set_pos(tok.start_pos, tok.end_pos)
 
@@ -39,7 +47,7 @@ class NumberNode(Node):
 
 
 class LiteralNode(Node):
-    def __init__(self, tok):
+    def __init__(self, tok: Optional[Token]):
         self.tok = tok
         super().set_pos(tok.start_pos, tok.end_pos)
 
@@ -48,13 +56,13 @@ class LiteralNode(Node):
 
 
 class StringNode(Node):
-    def __init__(self, tok):
+    def __init__(self, tok: Optional[Token]):
         self.tok = tok
         super().set_pos(tok.start_pos, tok.end_pos)
 
 
 class BinOpNode(Node):
-    def __init__(self, left, oper, right):
+    def __init__(self, left: Node, oper: Optional[Token], right: Node):
         self.left = left
         self.oper = oper
         self.right = right
@@ -65,7 +73,7 @@ class BinOpNode(Node):
 
 
 class UnaryOpNode(Node):
-    def __init__(self, oper, node):
+    def __init__(self, oper: Optional[Token], node: Node):
         self.oper = oper
         self.node = node
         super().set_pos(oper.start_pos, node.end_pos)
@@ -75,7 +83,7 @@ class UnaryOpNode(Node):
 
 
 class VarAccessNode(Node):
-    def __init__(self, var_name):
+    def __init__(self, var_name: Optional[Token]):
         self.var_name = var_name
         super().set_pos(var_name.start_pos, var_name.end_pos)
 
@@ -84,7 +92,7 @@ class VarAccessNode(Node):
 
 
 class VarAssignNode(Node):
-    def __init__(self, var_name, value):
+    def __init__(self, var_name: Optional[Token], value: Node):
         self.var_name = var_name
         self.value = value
         super().set_pos(var_name.start_pos, value.end_pos)
@@ -94,7 +102,7 @@ class VarAssignNode(Node):
 
 
 class IfBlockNode(Node):
-    def __init__(self, case: tuple, else_expr):
+    def __init__(self, case: tuple[Node, ...], else_expr: Node):
         self.case = case
         self.else_expr = else_expr
         super().set_pos(case[0].start_pos)
@@ -104,7 +112,7 @@ class IfBlockNode(Node):
 
 
 class WhileNode(Node):
-    def __init__(self, condition, body):
+    def __init__(self, condition: Node, body: Node):
         self.condition = condition
         self.body = body
         super().set_pos(condition.start_pos, body.end_pos)

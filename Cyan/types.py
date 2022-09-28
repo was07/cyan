@@ -1,84 +1,122 @@
-from typing import Optional, Self
-from cyan.utils import Pos
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from cyan.exceptions import RTError
+
+if TYPE_CHECKING:
+    from typing import Optional, TypeVar, Any, TypeAlias, Callable
+    from cyan.ast import Node
+    from cyan.tokens import Token
+    from cyan.utils import Pos
+
+    ObjectSelf: TypeAlias = TypeVar("ObjectSelf", bound="Object")
+    OperationResult: TypeAlias = tuple[ObjectSelf, None]
+    OperationError: TypeAlias = tuple[None, RTError]
+
+    BooleanOperationResult: TypeAlias = tuple["Bool", None]
+
+    OperationResultOrError: TypeAlias = OperationResult | OperationError
+    BooleanOperationResultOrError: TypeAlias = BooleanOperationResult | OperationError
+
+
+__all__ = ("RTResult", "Context", "SymbolMap", "NoneObj", "Bool", "Number", "String", "Function", "BuiltInFunction")
+
+
+class RTResult:
+    __slots__ = ("value", "error")
+
+    def __init__(self):
+        self.value = None
+        self.error = None
+
+    def register(self, res):
+        if res.error:
+            self.error = res.error
+        return res.value
+
+    def success(self, value):
+        self.value = value
+        return self
+
+    def failure(self, error: RTError):
+        self.error = error
+        return self
 
 
 class Object:
-    type_name: str
-    start_pos: Optional[Pos]
-    end_pos: Optional[Pos]
-    ctx: Optional["Context"]
+    value: Optional[Any] = None
+    ctx: Optional[Context] = None
+    start_pos: Optional[Pos] = None
+    end_pos: Optional[Pos] = None
 
     def __init__(self, name="Object"):
-        self.type_name = name
-        self.start_pos = None
-        self.end_pos = None
-        self.ctx = None
+        self.type_name: str = name
 
     def __str__(self) -> str:
         return f"<object-of-type-{self.type_name}>"
 
-    def __repr__(self) -> str:
-        return self.__str__()
+    __repr__ = __str__
 
-    def set_pos(self, pos_start=None, pos_end=None) -> Self:
+    def set_pos(
+        self, pos_start: Optional[Pos] = None, pos_end: Optional[Pos] = None
+    ) -> ObjectSelf:
         self.start_pos = pos_start
         self.end_pos = pos_end
         return self
 
-    def set_context(self, context=None) -> Self:
+    def set_context(self, context: Optional[Context] = None) -> ObjectSelf:
         self.ctx = context
         return self
 
-    def is_truthy(self):
+    def is_truthy(self) -> Bool:
         return Bool(True)
 
     # arithmetic operations
-    def operate_plus(self, other):
+    def operate_plus(self, other) -> OperationError:
         return None, self.not_supported("+ operator", other)
 
-    def operate_minus(self, other):
+    def operate_minus(self, other) -> OperationError:
         return None, self.not_supported("- operator", other)
 
-    def operate_mul(self, other):
+    def operate_mul(self, other) -> OperationError:
         return None, self.not_supported("* operator", other)
 
-    def operate_div(self, other):
+    def operate_div(self, other) -> OperationError:
         return None, self.not_supported("/ operator", other)
 
-    def operate_pow(self, other):
+    def operate_pow(self, other) -> OperationError:
         return None, self.not_supported("^ operator", other)
 
     # boolean operations
-    def compare_eq(self, other):
+    def compare_eq(self, other) -> OperationError:
         return None, self.not_supported("== operator", other)
 
-    def compare_ne(self, other):
+    def compare_ne(self, other) -> OperationError:
         return None, self.not_supported("!= operator", other)
 
-    def compare_gt(self, other):
+    def compare_gt(self, other) -> OperationError:
         return None, self.not_supported("> operator", other)
 
-    def compare_lt(self, other):
+    def compare_lt(self, other) -> OperationError:
         return None, self.not_supported("< operator", other)
 
-    def compare_gte(self, other):
+    def compare_gte(self, other) -> OperationError:
         return None, self.not_supported(">= operator", other)
 
-    def compare_lte(self, other):
+    def compare_lte(self, other) -> OperationError:
         return None, self.not_supported("<= operator", other)
 
     # logical operations
-    def logic_and(self, other):
+    def logic_and(self, other) -> OperationError:
         return None, self.not_supported("'and' logic", other)
 
-    def logic_or(self, other):
+    def logic_or(self, other) -> OperationError:
         return None, self.not_supported("'or' logic", other)
 
-    def logic_not(self):
+    def logic_not(self) -> OperationError:
         return None, self.not_supported("'not' logic", self)
 
-    def not_supported(self, what_is_not_supported, other=None):
+    def not_supported(self, what_is_not_supported, other=None) -> RTError:
         return RTError(
             self.start_pos,
             self.end_pos,
@@ -91,62 +129,59 @@ class NoneObj(Object):
     def __init__(self):
         super().__init__("NoneObj")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "none"
 
-    def is_truthy(self):
+    def is_truthy(self) -> Bool:
         return Bool(False)
 
     @staticmethod
-    def copy():
+    def copy() -> ObjectSelf:
         return NoneObj()
 
 
 class Bool(Object):
     def __init__(self, value):
-        Object.__init__(self, "Bool")
+        super().__init__("Bool")
         self.value = bool(value)
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "true" if self.value else "false"
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.value
 
     @staticmethod
-    def converter(obj: Object):
+    def converter(obj: Object) -> RTResult:
         return RTResult().success(
             Bool(obj.is_truthy())
         )
 
-    def is_truthy(self):
+    def is_truthy(self) -> Bool:
         return Bool(self.value)
 
-    def copy(self):
+    def copy(self) -> Bool:
         return (
             Bool(self.value)
-            .set_pos(self.pos_start, self.pos_end)
-            .set_context(self.context)
+            .set_pos(self.start_pos, self.end_pos)
+            .set_context(self.ctx)
         )
 
     # converters
-    def to_number(self):
+    def to_number(self) -> RTResult:
         return RTResult().success(
             Number(int(self.value))
         )
 
     # logical operators
-    def logic_and(self, other):
-        return Bool(self.value and other.value).set_context(self.context), None
+    def logic_and(self, other) -> BooleanOperationResult:
+        return Bool(self.value and other.value).set_context(self.ctx), None
 
-    def logic_or(self, other):
-        return Bool(self.value or other.value).set_context(self.context), None
+    def logic_or(self, other) -> BooleanOperationResult:
+        return Bool(self.value or other.value).set_context(self.ctx), None
 
-    def logic_not(self):
-        return Bool(not self.value).set_context(self.context), None
+    def logic_not(self) -> BooleanOperationResult:
+        return Bool(not self.value).set_context(self.ctx), None
 
 
 class Number(Object):
@@ -154,18 +189,14 @@ class Number(Object):
         super().__init__("Number")
         self.value = value
 
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
-
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.value)
 
     @staticmethod
-    def converter(obj: Object = None):
+    def converter(obj: Optional[Object] = None) -> RTResult:
         if obj is None:
             obj = Number(0)
         if isinstance(obj, Number):
@@ -182,102 +213,102 @@ class Number(Object):
                 )
             )
 
-    def copy(self):
+    def copy(self) -> Number:
         copy = Number(self.value)
-        copy.set_pos(self.pos_start, self.pos_end)
-        copy.set_context(self.context)
+        copy.set_pos(self.start_pos, self.end_pos)
+        copy.set_context(self.ctx)
         return copy
 
-    def is_truthy(self):
+    def is_truthy(self) -> Bool:
         return Bool(bool(self.value))
 
     # arithmetic operations
-    def operate_plus(self, other):
+    def operate_plus(self, other: Number) -> OperationResultOrError:
         if isinstance(other, Number):
-            return Number(self.value + other.value).set_context(self.context), None
+            return Number(self.value + other.value).set_context(self.ctx), None
         else:
             return Object.operate_plus(self, other)  # makes not supported error
 
-    def operate_minus(self, other):
+    def operate_minus(self, other: Number) -> OperationResultOrError:
         if isinstance(other, Number):
-            return Number(self.value - other.value).set_context(self.context), None
+            return Number(self.value - other.value).set_context(self.ctx), None
         else:
             return Object.operate_minus(self, other)  # makes not supported error
 
-    def operate_mul(self, other):
+    def operate_mul(self, other: Number) -> OperationResultOrError:
         if isinstance(other, Number):
-            return Number(self.value * other.value).set_context(self.context), None
+            return Number(self.value * other.value).set_context(self.ctx), None
         else:
             return Object.operate_mul(self, other)  # makes not supported error
 
-    def operate_div(self, other):
+    def operate_div(self, other: Number) -> OperationResultOrError:
         if isinstance(other, Number):
             if other.value == 0:
                 return None, RTError(
-                    other.pos_start, other.pos_end, "Division by Zero", self.context
+                    other.start_pos, other.end_pos, "Division by Zero", self.ctx
                 )
-            return Number(self.value / other.value).set_context(self.context), None
+            return Number(self.value / other.value).set_context(self.ctx), None
         else:
             return Object.operate_div(self, other)  # makes not supported error
 
-    def operate_pow(self, other):
+    def operate_pow(self, other: Number) -> OperationResultOrError:
         if isinstance(other, Number):
-            return Number(self.value**other.value).set_context(self.context), None
+            return Number(self.value**other.value).set_context(self.ctx), None
         else:
             return Object.operate_pow(self, other)  # makes not supported error
 
     # boolean operations
-    def compare_eq(self, other):
+    def compare_eq(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value == other.value).set_context(self.context), None
+            return Bool(self.value == other.value).set_context(self.ctx), None
         else:
             return Object.compare_eq(self, other)  # makes not supported error
 
-    def compare_ne(self, other):
+    def compare_ne(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value != other.value).set_context(self.context), None
+            return Bool(self.value != other.value).set_context(self.ctx), None
         else:
             return Object.compare_ne(self, other)  # makes not supported error
 
-    def compare_gt(self, other):
+    def compare_gt(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value > other.value).set_context(self.context), None
+            return Bool(self.value > other.value).set_context(self.ctx), None
         else:
             return Object.compare_gt(self, other)  # makes not supported error
 
-    def compare_lt(self, other):
+    def compare_lt(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value < other.value).set_context(self.context), None
+            return Bool(self.value < other.value).set_context(self.ctx), None
         else:
             return Object.compare_lt(self, other)  # makes not supported error
 
-    def compare_gte(self, other):
+    def compare_gte(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value >= other.value).set_context(self.context), None
+            return Bool(self.value >= other.value).set_context(self.ctx), None
         else:
             return Object.compare_gte(self, other)  # makes not supported error
 
-    def compare_lte(self, other):
+    def compare_lte(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(self.value <= other.value).set_context(self.context), None
+            return Bool(self.value <= other.value).set_context(self.ctx), None
         else:
             return Object.compare_lte(self, other)  # makes not supported error
 
     # logical operations
-    def logic_and(self, other):
+    def logic_and(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(int(self.value and other.value)).set_context(self.context), None
+            return Bool(int(self.value and other.value)).set_context(self.ctx), None
         else:
             return Object.logic_and(self, other)  # makes not supported error
 
-    def logic_or(self, other):
+    def logic_or(self, other: Number) -> BooleanOperationResultOrError:
         if isinstance(other, Number):
-            return Bool(int(self.value or other.value)).set_context(self.context), None
+            return Bool(int(self.value or other.value)).set_context(self.ctx), None
         else:
             return Object.logic_or(self, other)  # makes not supported error
 
-    def logic_not(self):
-        return Bool(int(not self.value)).set_context(self.context), None
+    def logic_not(self) -> BooleanOperationResult:
+        return Bool(int(not self.value)).set_context(self.ctx), None
 
 
 class String(Object):
@@ -285,34 +316,37 @@ class String(Object):
         super().__init__("String")
         self.value = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"'{self.value}'"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
     @staticmethod
-    def converter(obj: Object = None):
+    def converter(obj: Optional[Object] = None) -> RTResult:
         res = RTResult()
-        if obj is None:
-            return res.success(String(""))
-        elif isinstance(obj, String):
-            return res.success(String(obj.value))
-        else:
-            return res.success(String(obj))
 
-    def copy(self):
+        if obj is None:
+            value = ""
+        elif isinstance(obj, String):
+            value = obj.value
+        else:
+            value = obj
+
+        return res.success(String(value))
+
+    def copy(self) -> ObjectSelf:
         return (
             String(self.value)
             .set_pos(self.start_pos, self.end_pos)
             .set_context(self.ctx)
         )
 
-    def is_truthy(self):
+    def is_truthy(self) -> Bool:
         return Bool(self.value)
 
     # converters
-    def to_number(self):
+    def to_number(self) -> RTResult:
         self.value: str
         num_value = None
         try:
@@ -335,33 +369,33 @@ class String(Object):
         )
 
     # arithmetic operations
-    def operate_plus(self, other):
+    def operate_plus(self, other: String) -> OperationResultOrError:
         if isinstance(other, String):
             return String(self.value + other.value).set_context(self.ctx), None
         else:
             return Object.operate_plus(self, other)
 
     # boolean operations
-    def compare_eq(self, other):
+    def compare_eq(self, other: String) -> BooleanOperationResult:
         return Bool(self.value == other.value).set_context(self.ctx), None
 
-    def compare_ne(self, other):
+    def compare_ne(self, other: String) -> BooleanOperationResult:
         return Bool(self.value != other.value).set_context(self.ctx), None
 
 
 class Function(Object):
-    def __init__(self, name, parameters, body):
+    def __init__(self, name: str, parameters: list[Token], body: Node):
         Object.__init__(self)
-        self.type_name = "Function"
+        self.type_name: str = "Function"
         self.name = name
         self.params = parameters
         self.n_params = len(parameters)
         self.body = body
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<Function {self.name}>"
 
-    def copy(self):
+    def copy(self) -> ObjectSelf:
         copy = Function(self.name, self.params, self.body)
         copy.set_context(self.ctx)
         copy.set_pos(self.start_pos, self.end_pos)
@@ -369,73 +403,65 @@ class Function(Object):
 
 
 class BuiltInFunction(Object):
-    def __init__(self, name: str, function: Function):
+    def __init__(self, name: str, function: Callable[[Object | tuple[Object]], RTResult]):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
         self.name = name
         self.function = function  # a function that has to return RTResult object
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<Built-in Function {self.name}>"
 
-    def copy(self):
+    def copy(self) -> ObjectSelf:
         copy = BuiltInFunction(self.name, self.function)
         copy.set_context(self.ctx)
         copy.set_pos(self.start_pos, self.end_pos)
         return copy
 
-    def execute(self, args: list):
+    def execute(self, args: list) -> RTResult:
         res = RTResult()
 
-        value = res.register(self.function(*args))
+        value = res.register(
+            self.function(*args)
+        )
         if res.error:
             return res
 
         return res.success(value)
 
 
-class RTResult:
-    def __init__(self):
-        self.value = None
-        self.error = None
-
-    def register(self, res):
-        if res.error:
-            self.error = res.error
-        return res.value
-
-    def success(self, value):
-        self.value = value
-        return self
-
-    def failure(self, error: RTError):
-        self.error = error
-        return self
-
-
 class Context:
+    __slots__ = ("name", "parent", "parent_entry_pos", "symbol_map")
+
     def __init__(
-        self, display_name, parent=None, parent_entry_pos=None, symbol_map=None
+            self,
+            name: str,
+            parent: Optional[Context] = None,
+            parent_entry_pos=None,
+            symbol_map: Optional[SymbolMap] = None
     ):
-        self.display_name: str = display_name
-        self.parent: Context = parent
+        self.name: str = name
+        self.parent = parent
         self.parent_entry_pos = parent_entry_pos
-        self.symbol_map: SymbolMap = symbol_map
+        self.symbol_map = symbol_map
 
 
 class SymbolMap:
+    __slots__ = ("symbol_map", "parent")
+
     def __init__(self, parent=None):
-        self.symbol_map = {}
+        self.symbol_map: dict[str, Any] = {}
         self.parent = parent
 
-    def get(self, var_name):
-        value = self.symbol_map.get(var_name, None)
+    def get(self, name: str):
+        value = self.symbol_map.get(name, None)
         if value is None and self.parent:
-            return self.parent.get(var_name)
-        return value
+            return self.parent.get(name)
+        else:
+            return value
 
-    def set(self, var_name, value):
-        self.symbol_map[var_name] = value
+    def set(self, name: str, value) -> None:
+        self.symbol_map[name] = value
 
-    def remove(self, var_name):
-        del self.symbol_map[var_name]
+    def remove(self, name: str) -> None:
+        del self.symbol_map[name]

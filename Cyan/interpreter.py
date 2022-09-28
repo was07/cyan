@@ -1,20 +1,23 @@
-from cyan.tokens import T
-from cyan.exceptions import RTError
+from __future__ import annotations
 
 # for type hinting
 import cyan.ast as ast
-from cyan.utils import Printer
-from cyan.ast import Node
+from typing import Callable
 
-from cyan.tokenizer import tokenize
+from cyan.tokens import T
+from cyan.utils import Printer
 from cyan.parser import parse_ast
+from cyan.tokenizer import tokenize
+from cyan.exceptions import RTError
 from cyan.types import RTResult, Number, Bool, String, Function, BuiltInFunction, NoneObj, SymbolMap, Context
+
+__all__ = ("Interpreter", "build_in_out", "interpret", "run")
 
 
 class Interpreter:
-    def visit(self, node: Node, ctx: Context):
+    def visit(self, node: ast.NodeSelf, ctx: Context) -> RTResult:
         method_name = f"visit_{type(node).__name__}"
-        method = getattr(self, method_name, self.no_visit_method)
+        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(self, method_name, self.no_visit_method)
         return method(node, ctx)
 
     def no_visit_method(self, node, ctx: Context):
@@ -40,7 +43,7 @@ class Interpreter:
     def visit_NumberNode(node: ast.NumberNode, ctx: Context):
         return RTResult().success(
             Number(node.tok.value)
-            .set_pos(node.pos_start, node.pos_end)
+            .set_pos(node.start_pos, node.end_pos)
             .set_context(ctx)
         )
 
@@ -49,22 +52,22 @@ class Interpreter:
         res = RTResult()
         if node.tok.value == "true":
             return res.success(
-                Bool(True).set_pos(node.pos_start, node.pos_end).set_context(ctx)
+                Bool(True).set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
         elif node.tok.value == "false":
             return res.success(
-                Bool(False).set_pos(node.pos_start, node.pos_end).set_context(ctx)
+                Bool(False).set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
         elif node.tok.value == "none":
             return res.success(
-                NoneObj().set_pos(node.pos_start, node.pos_end).set_context(ctx)
+                NoneObj().set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
 
     @staticmethod
     def visit_StringNode(node: ast.StringNode, ctx: Context):
         return RTResult().success(
             String(node.tok.value)
-            .set_pos(node.pos_start, node.pos_end)
+            .set_pos(node.start_pos, node.end_pos)
             .set_context(ctx)
         )
 
@@ -77,11 +80,11 @@ class Interpreter:
         if value is None:
             return res.failure(
                 RTError(
-                    node.pos_start, node.pos_end, f"'{var_name}' not defined", ctx
+                    node.start_pos, node.end_pos, f"'{var_name}' not defined", ctx
                 )
             )
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.copy().set_pos(node.start_pos, node.end_pos)
 
         return res.success(value)
 
@@ -137,9 +140,9 @@ class Interpreter:
             result, error = left.logic_or(right)
 
         if error:
-            return res.failure(error.set_pos(node.pos_start, node.pos_end))
+            return res.failure(error.set_pos(node.start_pos, node.end_pos))
         else:
-            return res.success(result.set_pos(node.pos_start, node.pos_end))
+            return res.success(result.set_pos(node.start_pos, node.end_pos))
 
     def visit_UnaryOpNode(self, node: ast.UnaryOpNode, ctx: Context):
         res = RTResult()
@@ -157,7 +160,7 @@ class Interpreter:
         if error:
             return res.failure(error)
         else:
-            return res.success(number.set_pos(node.pos_start, node.pos_end))
+            return res.success(number.set_pos(node.start_pos, node.end_pos))
 
     def visit_IfBlockNode(self, node: ast.IfBlockNode, ctx: Context):
         res = RTResult()
@@ -195,7 +198,7 @@ class Interpreter:
 
         func = (
             Function(node.name, node.parameters, node.body)
-            .set_pos(node.pos_start, node.pos_end)
+            .set_pos(node.start_pos, node.end_pos)
             .set_context(ctx)
         )
         ctx.symbol_map.set(node.name, func)
@@ -209,7 +212,7 @@ class Interpreter:
         value_to_call = res.register(self.visit(node.node_to_call, ctx))
         if res.error:
             return res
-        value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
+        value_to_call = value_to_call.copy().set_pos(node.start_pos, node.end_pos)
 
         for arg_node in node.arguments:
             args.append(res.register(self.visit(arg_node, ctx)))
@@ -223,13 +226,14 @@ class Interpreter:
         )
 
         if res.error:
-            res.error.set_pos(node.pos_start, node.pos_end)
+            res.error.set_pos(node.start_pos, node.end_pos)
             return res
 
         return res.success(return_value)
 
     def call_function(self, fn: Function, args):
         res = RTResult()
+        print(fn, "\n\n\n")
         context = Context(
             fn.name, fn.ctx, fn.start_pos, SymbolMap(fn.ctx.symbol_map)
         )
@@ -276,7 +280,7 @@ GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter))
 GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter))
 
 
-def interpret(node, context) -> RTResult:
+def interpret(node: ast.Node, context: Context) -> RTResult:
     interpreter = Interpreter()
     return interpreter.visit(node, context)
 
