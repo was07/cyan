@@ -47,28 +47,28 @@ class ParseResult:
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
-        self.cur_index = -1
+        self.crr_idx = -1
         self.cur_tok: Optional[Token] = None
         self.advance()  # self.cur_tok will be set up in this call
 
     def advance(self):
-        self.cur_index += 1
-        if self.cur_index < len(self.tokens):
-            self.cur_tok: Token = self.tokens[self.cur_index]
+        self.crr_idx += 1
+        if self.crr_idx < len(self.tokens):
+            self.cur_tok: Token = self.tokens[self.crr_idx]
         return self.cur_tok
 
     def reverse(self, amount=1):
-        self.cur_index -= amount
+        self.crr_idx -= amount
         self.update_current_tok()
         return self.cur_tok
 
     def update_current_tok(self):
-        if self.cur_index >= 0 and self.cur_index < len(self.tokens):
-            self.cur_tok = self.tokens[self.cur_index]
+        if self.crr_idx >= 0 and self.crr_idx < len(self.tokens):
+            self.cur_tok = self.tokens[self.crr_idx]
 
     def next_tok(self):
-        if self.cur_index + 1 < len(self.tokens):
-            return self.tokens[self.cur_index + 1]
+        if self.crr_idx + 1 < len(self.tokens):
+            return self.tokens[self.crr_idx + 1]
 
     def parse(self):
         res = self.statements()

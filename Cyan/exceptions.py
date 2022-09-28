@@ -44,12 +44,12 @@ class RTError(Error):
         self.context = context
 
     def __repr__(self):
-        result = self.generate_traceback()
+        result = self.get_traceback()
         result += pos_highlight(self.pos_start.file_text, self.pos_start, self.pos_end)
         result += f"\n{self.name}: {self.info}"
         return result
 
-    def generate_traceback(self):
+    def get_traceback(self):
         result = ""
         pos = self.pos_start
         ctx = self.context

@@ -25,14 +25,14 @@ class StatementsNode(Node):
         super().set_pos(pos_start, pos_end)
 
     def __repr__(self):
-        stmts = ", ".join(repr(statement) for statement in self.statements)
-        return f"Statements({stmts})"
+        statements = ", ".join(repr(statement) for statement in self.statements)
+        return f"Statements({statements})"
 
 
 class NumberNode(Node):
     def __init__(self, tok):
         self.tok = tok
-        super().set_pos(tok.pos_start, tok.pos_end)
+        super().set_pos(tok.start_pos, tok.end_pos)
 
     def __repr__(self):
         return str(self.tok)
@@ -41,7 +41,7 @@ class NumberNode(Node):
 class LiteralNode(Node):
     def __init__(self, tok):
         self.tok = tok
-        super().set_pos(tok.pos_start, tok.pos_end)
+        super().set_pos(tok.start_pos, tok.end_pos)
 
     def __repr__(self):
         return self.tok.value
@@ -50,7 +50,7 @@ class LiteralNode(Node):
 class StringNode(Node):
     def __init__(self, tok):
         self.tok = tok
-        super().set_pos(tok.pos_start, tok.pos_end)
+        super().set_pos(tok.start_pos, tok.end_pos)
 
 
 class BinOpNode(Node):
@@ -58,7 +58,7 @@ class BinOpNode(Node):
         self.left = left
         self.oper = oper
         self.right = right
-        super().set_pos(left.pos_start, right.pos_end)
+        super().set_pos(left.start_pos, right.end_pos)
 
     def __repr__(self):
         return f"({self.left}, {self.oper}, {self.right})"
@@ -68,7 +68,7 @@ class UnaryOpNode(Node):
     def __init__(self, oper, node):
         self.oper = oper
         self.node = node
-        super().set_pos(oper.pos_start, node.pos_end)
+        super().set_pos(oper.start_pos, node.end_pos)
 
     def __repr__(self):
         return f"({self.oper}, {self.node})"
@@ -77,7 +77,7 @@ class UnaryOpNode(Node):
 class VarAccessNode(Node):
     def __init__(self, var_name):
         self.var_name = var_name
-        super().set_pos(var_name.pos_start, var_name.pos_end)
+        super().set_pos(var_name.start_pos, var_name.end_pos)
 
     def __repr__(self):
         return f"({self.var_name})"
@@ -87,7 +87,7 @@ class VarAssignNode(Node):
     def __init__(self, var_name, value):
         self.var_name = var_name
         self.value = value
-        super().set_pos(var_name.pos_start, value.pos_end)
+        super().set_pos(var_name.start_pos, value.end_pos)
 
     def __repr__(self):
         return f"({self.var_name} = {self.value})"
@@ -97,7 +97,7 @@ class IfBlockNode(Node):
     def __init__(self, case: tuple, else_expr):
         self.case = case
         self.else_expr = else_expr
-        super().set_pos(case[0].pos_start)
+        super().set_pos(case[0].start_pos)
 
     def __repr__(self):
         return f"(if {self.case[0]} then {self.case[1]} else {self.else_expr})"
@@ -107,7 +107,7 @@ class WhileNode(Node):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
-        super().set_pos(condition.pos_start, body.pos_end)
+        super().set_pos(condition.start_pos, body.end_pos)
 
     def __repr__(self):
         return f"(while {self.condition} do {self.body})"

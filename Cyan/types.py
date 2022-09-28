@@ -1,33 +1,33 @@
-from typing import Optional
+from typing import Optional, Self
 from cyan.utils import Pos
 from cyan.exceptions import RTError
 
 
 class Object:
     type_name: str
-    pos_start: Optional[Pos]
-    pos_end: Optional[Pos]
-    context: Optional["Context"]
+    start_pos: Optional[Pos]
+    end_pos: Optional[Pos]
+    ctx: Optional["Context"]
 
-    def __init__(self, type_name="Object"):
-        self.type_name = type_name
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
+    def __init__(self, name="Object"):
+        self.type_name = name
+        self.start_pos = None
+        self.end_pos = None
+        self.ctx = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"<object-of-type-{self.type_name}>"
 
-    def __repr__(self):
-        return f"<object-of-type-{self.type_name}>"
+    def __repr__(self) -> str:
+        return self.__str__()
 
-    def set_pos(self, pos_start=None, pos_end=None):
-        self.pos_start = pos_start
-        self.pos_end = pos_end
+    def set_pos(self, pos_start=None, pos_end=None) -> Self:
+        self.start_pos = pos_start
+        self.end_pos = pos_end
         return self
 
-    def set_context(self, context=None):
-        self.context = context
+    def set_context(self, context=None) -> Self:
+        self.ctx = context
         return self
 
     def is_truthy(self):
@@ -80,10 +80,10 @@ class Object:
 
     def not_supported(self, what_is_not_supported, other=None):
         return RTError(
-            self.pos_start,
-            self.pos_end,
+            self.start_pos,
+            self.end_pos,
             f"{self.type_name} does not support {what_is_not_supported} with {other.type_name}",
-            self.context,
+            self.ctx,
         )
 
 
@@ -91,16 +91,14 @@ class NoneObj(Object):
     def __init__(self):
         super().__init__("NoneObj")
 
-    def __repr__(self):
-        return "none"
-
     def __str__(self):
         return "none"
 
     def is_truthy(self):
         return Bool(False)
 
-    def copy(self):
+    @staticmethod
+    def copy():
         return NoneObj()
 
 
@@ -112,18 +110,17 @@ class Bool(Object):
         self.pos_end = None
         self.context = None
 
-    def __repr__(self):
+    def __str__(self):
         return "true" if self.value else "false"
 
     def __bool__(self):
         return self.value
 
-    def __str__(self):
-        return "true" if self.value else "false"
-
     @staticmethod
     def converter(obj: Object):
-        return RTResult().success(Bool(obj.is_truthy()))
+        return RTResult().success(
+            Bool(obj.is_truthy())
+        )
 
     def is_truthy(self):
         return Bool(self.value)
@@ -136,8 +133,10 @@ class Bool(Object):
         )
 
     # converters
-    def to_Number(self):
-        return RTResult().success(Number(int(self.value)))
+    def to_number(self):
+        return RTResult().success(
+            Number(int(self.value))
+        )
 
     # logical operators
     def logic_and(self, other):
@@ -159,14 +158,11 @@ class Number(Object):
         self.pos_end = None
         self.context = None
 
-    def __repr__(self):
+    def __str__(self):
         return str(self.value)
 
     def __bool__(self):
         return bool(self.value)
-
-    def __str__(self):
-        return str(self.value)
 
     @staticmethod
     def converter(obj: Object = None):
@@ -179,10 +175,10 @@ class Number(Object):
         else:
             return RTResult().failure(
                 RTError(
-                    obj.pos_start,
-                    obj.pos_end,
+                    obj.start_pos,
+                    obj.end_pos,
                     f"Cannot convert {obj.type_name} to Number",
-                    obj.context,
+                    obj.ctx,
                 )
             )
 
@@ -308,15 +304,15 @@ class String(Object):
     def copy(self):
         return (
             String(self.value)
-            .set_pos(self.pos_start, self.pos_end)
-            .set_context(self.context)
+            .set_pos(self.start_pos, self.end_pos)
+            .set_context(self.ctx)
         )
 
     def is_truthy(self):
         return Bool(self.value)
 
     # converters
-    def to_Number(self):
+    def to_number(self):
         self.value: str
         num_value = None
         try:
@@ -327,27 +323,30 @@ class String(Object):
             except ValueError:
                 return RTResult().failure(
                     RTError(
-                        self.pos_start,
-                        self.pos_end,
+                        self.start_pos,
+                        self.end_pos,
                         f"Cannot convert to Number: {self.value}",
-                        self.context,
+                        self.ctx,
                     )
                 )
-        return RTResult().success(Number(num_value))
+
+        return RTResult().success(
+            Number(num_value)
+        )
 
     # arithmetic operations
     def operate_plus(self, other):
         if isinstance(other, String):
-            return String(self.value + other.value).set_context(self.context), None
+            return String(self.value + other.value).set_context(self.ctx), None
         else:
             return Object.operate_plus(self, other)
 
     # boolean operations
     def compare_eq(self, other):
-        return Bool(self.value == other.value).set_context(self.context), None
+        return Bool(self.value == other.value).set_context(self.ctx), None
 
     def compare_ne(self, other):
-        return Bool(self.value != other.value).set_context(self.context), None
+        return Bool(self.value != other.value).set_context(self.ctx), None
 
 
 class Function(Object):
@@ -355,70 +354,34 @@ class Function(Object):
         Object.__init__(self)
         self.type_name = "Function"
         self.name = name
-        self.parameters = parameters
-        self.n_parameters = len(parameters)
+        self.params = parameters
+        self.n_params = len(parameters)
         self.body = body
-
-    def __repr__(self):
-        return f"<Function {self.name}>"
 
     def __str__(self):
         return f"<Function {self.name}>"
 
-    # def execute(self, args):
-    #     res = RTResult()
-    #     context = Context(
-    #         self.name, self.context, self.pos_start, SymbolMap(self.context.symbol_map)
-    #     )
-    #
-    #     if self.n_parameters != len(args):
-    #         return res.failure(
-    #             RTError(
-    #                 self.pos_start,
-    #                 self.pos_end,
-    #                 ("Too many" if len(args) > self.n_parameters else "Not enough")
-    #                 + f" arguments given into {self.name}, takes {len(self.parameters)}",
-    #                 context,
-    #             )
-    #         )
-    #
-    #     interpreter = Interpreter()
-    #
-    #     # setting parameters to given values
-    #     for i in range(self.n_parameters):
-    #         parameter = self.parameters[i]
-    #         arg = args[i]
-    #         context.symbol_map.set(parameter.value, arg)
-    #
-    #     value = res.register(interpreter.visit(self.body, context))
-    #     if res.error:
-    #         return res
-    #     return res.success(value)
-
     def copy(self):
-        copy = Function(self.name, self.parameters, self.body)
-        copy.set_context(self.context)
-        copy.set_pos(self.pos_start, self.pos_end)
+        copy = Function(self.name, self.params, self.body)
+        copy.set_context(self.ctx)
+        copy.set_pos(self.start_pos, self.end_pos)
         return copy
 
 
 class BuiltInFunction(Object):
-    def __init__(self, name: str, function):
+    def __init__(self, name: str, function: Function):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
         self.name = name
         self.function = function  # a function that has to return RTResult object
-
-    def __repr__(self):
-        return f"<Built-in Function {self.name}>"
 
     def __str__(self):
         return f"<Built-in Function {self.name}>"
 
     def copy(self):
         copy = BuiltInFunction(self.name, self.function)
-        copy.set_context(self.context)
-        copy.set_pos(self.pos_start, self.pos_end)
+        copy.set_context(self.ctx)
+        copy.set_pos(self.start_pos, self.end_pos)
         return copy
 
     def execute(self, args: list):

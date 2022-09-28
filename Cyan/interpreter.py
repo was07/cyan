@@ -4,31 +4,31 @@ from cyan.exceptions import RTError
 # for type hinting
 import cyan.ast as ast
 from cyan.utils import Printer
+from cyan.ast import Node
 
-# for run function
 from cyan.tokenizer import tokenize
 from cyan.parser import parse_ast
 from cyan.types import RTResult, Number, Bool, String, Function, BuiltInFunction, NoneObj, SymbolMap, Context
 
 
 class Interpreter:
-    def visit(self, node, context):
+    def visit(self, node: Node, ctx: Context):
         method_name = f"visit_{type(node).__name__}"
         method = getattr(self, method_name, self.no_visit_method)
-        return method(node, context)
+        return method(node, ctx)
 
-    def no_visit_method(self, node, context):
+    def no_visit_method(self, node, ctx: Context):
         Printer.internal_error_p(
             f"Interpreter: visit_{type(node).__name__} method is not defined"
         )
         exit()
 
-    def visit_StatementsNode(self, node: ast.StatementsNode, context):
+    def visit_StatementsNode(self, node: ast.StatementsNode, ctx: Context):
         res = RTResult()
         nodes = []
 
         for statement in node.statements:
-            nodes.append(res.register(self.visit(statement, context)))
+            nodes.append(res.register(self.visit(statement, ctx)))
             if res.error:
                 return res
 
@@ -37,47 +37,47 @@ class Interpreter:
         return res
 
     @staticmethod
-    def visit_NumberNode(node: ast.NumberNode, context):
+    def visit_NumberNode(node: ast.NumberNode, ctx: Context):
         return RTResult().success(
             Number(node.tok.value)
             .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_context(ctx)
         )
 
     @staticmethod
-    def visit_LiteralNode(node: ast.LiteralNode, context):
+    def visit_LiteralNode(node: ast.LiteralNode, ctx: Context):
         res = RTResult()
         if node.tok.value == "true":
             return res.success(
-                Bool(True).set_pos(node.pos_start, node.pos_end).set_context(context)
+                Bool(True).set_pos(node.pos_start, node.pos_end).set_context(ctx)
             )
         elif node.tok.value == "false":
             return res.success(
-                Bool(False).set_pos(node.pos_start, node.pos_end).set_context(context)
+                Bool(False).set_pos(node.pos_start, node.pos_end).set_context(ctx)
             )
         elif node.tok.value == "none":
             return res.success(
-                NoneObj().set_pos(node.pos_start, node.pos_end).set_context(context)
+                NoneObj().set_pos(node.pos_start, node.pos_end).set_context(ctx)
             )
 
     @staticmethod
-    def visit_StringNode(node: ast.StringNode, context):
+    def visit_StringNode(node: ast.StringNode, ctx: Context):
         return RTResult().success(
             String(node.tok.value)
             .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_context(ctx)
         )
 
     @staticmethod
-    def visit_VarAccessNode(node: ast.VarAccessNode, context):
+    def visit_VarAccessNode(node: ast.VarAccessNode, ctx: Context):
         res = RTResult()
         var_name = node.var_name.value
-        value = context.symbol_map.get(var_name)
+        value = ctx.symbol_map.get(var_name)
 
         if value is None:
             return res.failure(
                 RTError(
-                    node.pos_start, node.pos_end, f"'{var_name}' not defined", context
+                    node.pos_start, node.pos_end, f"'{var_name}' not defined", ctx
                 )
             )
 
@@ -85,23 +85,23 @@ class Interpreter:
 
         return res.success(value)
 
-    def visit_VarAssignNode(self, node: ast.VarAssignNode, context):
+    def visit_VarAssignNode(self, node: ast.VarAssignNode, ctx: Context):
         res = RTResult()
         var_name = node.var_name.value
 
-        value = res.register(self.visit(node.value, context))
+        value = res.register(self.visit(node.value, ctx))
         if res.error:
             return res
 
-        context.symbol_map.set(var_name, value)
+        ctx.symbol_map.set(var_name, value)
         return res.success(value)
 
-    def visit_BinOpNode(self, node: ast.BinOpNode, context):
+    def visit_BinOpNode(self, node: ast.BinOpNode, ctx):
         res = RTResult()
-        left = res.register(self.visit(node.left, context))
+        left = res.register(self.visit(node.left, ctx))
         if res.error:
             return res
-        right = res.register(self.visit(node.right, context))
+        right = res.register(self.visit(node.right, ctx))
         if res.error:
             return res
 
@@ -141,9 +141,9 @@ class Interpreter:
         else:
             return res.success(result.set_pos(node.pos_start, node.pos_end))
 
-    def visit_UnaryOpNode(self, node: ast.UnaryOpNode, context):
+    def visit_UnaryOpNode(self, node: ast.UnaryOpNode, ctx: Context):
         res = RTResult()
-        number = res.register(self.visit(node.node, context))
+        number = res.register(self.visit(node.node, ctx))
         if res.error:
             return res
 
@@ -159,60 +159,60 @@ class Interpreter:
         else:
             return res.success(number.set_pos(node.pos_start, node.pos_end))
 
-    def visit_IfBlockNode(self, node: ast.IfBlockNode, context):
+    def visit_IfBlockNode(self, node: ast.IfBlockNode, ctx: Context):
         res = RTResult()
-        cond = res.register(self.visit(node.case[0], context))
+        cond = res.register(self.visit(node.case[0], ctx))
         if res.error:
             return res
         if cond.is_truthy():
-            value = res.register(self.visit(node.case[1], context))
+            value = res.register(self.visit(node.case[1], ctx))
         else:
-            value = res.register(self.visit(node.else_expr, context))
+            value = res.register(self.visit(node.else_expr, ctx))
 
         if res.error:
             return res
         return res.success(value)
 
-    def visit_WhileNode(self, node: ast.WhileNode, context):
+    def visit_WhileNode(self, node: ast.WhileNode, ctx: Context):
         res = RTResult()
-        cond = res.register(self.visit(node.condition, context))
+        cond = res.register(self.visit(node.condition, ctx))
         if res.error:
             return res
 
         while cond.is_truthy():
-            value = res.register(self.visit(node.body, context))
+            value = res.register(self.visit(node.body, ctx))
             if res.error:
                 return res
-            cond = res.register(self.visit(node.condition, context))
+            cond = res.register(self.visit(node.condition, ctx))
             if res.error:
                 return res
 
         return res.success(NoneObj())
 
     @staticmethod
-    def visit_FuncDefNode(node: ast.FuncDefNode, context):
+    def visit_FuncDefNode(node: ast.FuncDefNode, ctx: Context):
         res = RTResult()
 
         func = (
             Function(node.name, node.parameters, node.body)
             .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_context(ctx)
         )
-        context.symbol_map.set(node.name, func)
+        ctx.symbol_map.set(node.name, func)
 
         return res.success(func)
 
-    def visit_FuncCallNode(self, node: ast.FuncCallNode, context):
+    def visit_FuncCallNode(self, node: ast.FuncCallNode, ctx: Context):
         res = RTResult()
         args = []
 
-        value_to_call = res.register(self.visit(node.node_to_call, context))
+        value_to_call = res.register(self.visit(node.node_to_call, ctx))
         if res.error:
             return res
         value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
 
         for arg_node in node.arguments:
-            args.append(res.register(self.visit(arg_node, context)))
+            args.append(res.register(self.visit(arg_node, ctx)))
             if res.error:
                 return res
 
@@ -231,16 +231,16 @@ class Interpreter:
     def call_function(self, fn: Function, args):
         res = RTResult()
         context = Context(
-            fn.name, fn.context, fn.pos_start, SymbolMap(fn.context.symbol_map)
+            fn.name, fn.ctx, fn.start_pos, SymbolMap(fn.ctx.symbol_map)
         )
 
-        if fn.n_parameters != len(args):
+        if fn.n_params != len(args):
             return res.failure(
                 RTError(
-                    fn.pos_start,
-                    fn.pos_end,
-                    ("Too many" if len(args) > fn.n_parameters else "Not enough")
-                    + f" arguments given into {fn.name}, takes {len(fn.parameters)}",
+                    fn.start_pos,
+                    fn.end_pos,
+                    ("Too many" if len(args) > fn.n_params else "Not enough")
+                    + f" arguments given into {fn.name}, takes {len(fn.params)}",
                     context,
                 )
             )
@@ -248,8 +248,8 @@ class Interpreter:
         # interpreter = Interpreter()
 
         # setting parameters to given values
-        for i in range(fn.n_parameters):
-            parameter = fn.parameters[i]
+        for i in range(fn.n_params):
+            parameter = fn.params[i]
             arg = args[i]
             context.symbol_map.set(parameter.value, arg)
 
