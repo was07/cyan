@@ -1,6 +1,6 @@
 # for type hinting
 from typing import Optional
-from Cyan.utils import Pos
+from cyan.utils import Pos
 
 
 class T:

@@ -1,6 +1,6 @@
-from Cyan.tokens import T, Token
-from Cyan.utils import Pos, InvalidCharacterError, InvalidSyntaxError
-
+from cyan.tokens import T, Token
+from cyan.utils import Pos
+from cyan.exceptions import InvalidSyntaxError, InvalidCharacterError
 
 car_tok_map = {
     "+": T.PLUS,
@@ -19,7 +19,6 @@ literals = ("true", "false", "none")
 keywords = (
     "let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun"
 )
-
 
 
 # Tokenizer/Lexer
@@ -50,7 +49,9 @@ class Tokenizer:
                 tokens.append(self.get_identifier())
                 continue
             elif self.car in car_tok_map:
-                tokens.append(Token(car_tok_map[self.car], pos_start=self.pos))
+                tokens.append(
+                    Token(car_tok_map[self.car], pos_start=self.pos)
+                )
             elif self.car in ("'", '"'):
                 tokens.append(self.get_string())
             elif self.car == "*":
@@ -70,7 +71,6 @@ class Tokenizer:
             elif self.car.isspace():
                 if self.car == "\n":
                     tokens.append(Token(T.NEWLINE, pos_start=self.pos))
-                pass
             else:
                 return [], InvalidCharacterError(
                     self.pos, f"Character {repr(self.car)} is invalid."
@@ -123,9 +123,11 @@ class Tokenizer:
 
         if self.car == "*":
             self.advance()
-            return Token(T.POW, pos_start=start_pos, pos_end=self.pos.copy())
+            tok = T.POW
         else:
-            return Token(T.MUL, pos_start=start_pos, pos_end=self.pos.copy())
+            tok = T.MUL
+
+        return Token(tok, pos_start=start_pos, pos_end=self.pos.copy())
 
     def get_not_equals(self):
         start_pos = self.pos.copy()

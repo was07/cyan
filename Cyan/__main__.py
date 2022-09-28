@@ -1,8 +1,8 @@
 import os
 import sys
 
-from Cyan import __version__
-from Cyan.interpreter import run
+from cyan import __version__
+from cyan.interpreter import run
 
 
 def shell(debug_mode=False):
