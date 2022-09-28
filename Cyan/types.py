@@ -365,35 +365,35 @@ class Function(Object):
     def __str__(self):
         return f"<Function {self.name}>"
 
-    def execute(self, args):
-        res = RTResult()
-        context = Context(
-            self.name, self.context, self.pos_start, SymbolMap(self.context.symbol_map)
-        )
-
-        if self.n_parameters != len(args):
-            return res.failure(
-                RTError(
-                    self.pos_start,
-                    self.pos_end,
-                    ("Too many" if len(args) > self.n_parameters else "Not enough")
-                    + f" arguments given into {self.name}, takes {len(self.parameters)}",
-                    context,
-                )
-            )
-
-        interpreter = Interpreter()
-
-        # setting parameters to given values
-        for i in range(self.n_parameters):
-            parameter = self.parameters[i]
-            arg = args[i]
-            context.symbol_map.set(parameter.value, arg)
-
-        value = res.register(interpreter.visit(self.body, context))
-        if res.error:
-            return res
-        return res.success(value)
+    # def execute(self, args):
+    #     res = RTResult()
+    #     context = Context(
+    #         self.name, self.context, self.pos_start, SymbolMap(self.context.symbol_map)
+    #     )
+    #
+    #     if self.n_parameters != len(args):
+    #         return res.failure(
+    #             RTError(
+    #                 self.pos_start,
+    #                 self.pos_end,
+    #                 ("Too many" if len(args) > self.n_parameters else "Not enough")
+    #                 + f" arguments given into {self.name}, takes {len(self.parameters)}",
+    #                 context,
+    #             )
+    #         )
+    #
+    #     interpreter = Interpreter()
+    #
+    #     # setting parameters to given values
+    #     for i in range(self.n_parameters):
+    #         parameter = self.parameters[i]
+    #         arg = args[i]
+    #         context.symbol_map.set(parameter.value, arg)
+    #
+    #     value = res.register(interpreter.visit(self.body, context))
+    #     if res.error:
+    #         return res
+    #     return res.success(value)
 
     def copy(self):
         copy = Function(self.name, self.parameters, self.body)

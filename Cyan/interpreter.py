@@ -217,11 +217,47 @@ class Interpreter:
                 return res
 
         value_to_call: Function
-        return_value = res.register(value_to_call.execute(args))
+        return_value = res.register(
+            # value_to_call.execute(args),
+            self.call_function(value_to_call, args)
+        )
+
         if res.error:
             res.error.set_pos(node.pos_start, node.pos_end)
             return res
+
         return res.success(return_value)
+
+    def call_function(self, fn: Function, args):
+        res = RTResult()
+        context = Context(
+            fn.name, fn.context, fn.pos_start, SymbolMap(fn.context.symbol_map)
+        )
+
+        if fn.n_parameters != len(args):
+            return res.failure(
+                RTError(
+                    fn.pos_start,
+                    fn.pos_end,
+                    ("Too many" if len(args) > fn.n_parameters else "Not enough")
+                    + f" arguments given into {fn.name}, takes {len(fn.parameters)}",
+                    context,
+                )
+            )
+
+        # interpreter = Interpreter()
+
+        # setting parameters to given values
+        for i in range(fn.n_parameters):
+            parameter = fn.parameters[i]
+            arg = args[i]
+            context.symbol_map.set(parameter.value, arg)
+
+        value = res.register(self.visit(fn.body, context))
+        if res.error:
+            return res
+        else:
+            return res.success(value)
 
 
 def build_in_out(*nodes):
