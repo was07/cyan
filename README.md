@@ -18,13 +18,13 @@ Commands:
 ```bash
 git clone https://github.com/was07/Cyan
 cd Cyan
-python Cyan
+python -m Cyan
 ```
 It will start the Cyan shell.
 
-To run a file, use `python Cyan filename.cy`
+To run a file, use `python -m Cyan filename.cy`
 
-To see other options, use `python Cyan --help`
+To see other options, use `python -m Cyan --help`
 
 ## Example Code
 
