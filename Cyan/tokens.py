@@ -14,17 +14,17 @@ class T:
     DIV = "DIV"
     POW = "POW"
 
-    EE = "EE"    # ==
-    NE = "NE"    # !=
-    LT = "LT"    # <
-    GT = "GT"    # >
+    EE = "EE"  # ==
+    NE = "NE"  # !=
+    LT = "LT"  # <
+    GT = "GT"  # >
     LTE = "LTE"  # <=
     GTE = "GTE"  # >=
 
-    EQ = "EQ"    # =
+    EQ = "EQ"  # =
 
-    L_PAREN = "L_PAREN"    # (
-    R_PAREN = "R_PAREN"    # )
+    L_PAREN = "L_PAREN"  # (
+    R_PAREN = "R_PAREN"  # )
     L_CPAREN = "L_CPAREN"  # {
     R_CPAREN = "R_CPAREN"  # }
 

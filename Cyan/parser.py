@@ -9,7 +9,13 @@ __all__ = ("ParseResult", "Parser", "parse_ast")
 
 
 class ParseResult:
-    __slots__ = ("error", "node", "last_registered_advance_count", "advancements", "to_reverse_count")
+    __slots__ = (
+        "error",
+        "node",
+        "last_registered_advance_count",
+        "advancements",
+        "to_reverse_count",
+    )
 
     def __init__(self):
         self.error = None
@@ -162,9 +168,7 @@ class Parser:
             if res.error:
                 return res
 
-            return res.success(
-                ast.VarAssignNode(var_name, expr)
-            )
+            return res.success(ast.VarAssignNode(var_name, expr))
 
         node = res.register(
             self.bin_oper(self.comp_expr, ((T.KW, "and"), (T.KW, "or")))
@@ -334,10 +338,8 @@ class Parser:
             if res.error:
                 return res
 
-            return res.success(
-                ast.UnaryOpNode(op_tok, node)
-            )
-            
+            return res.success(ast.UnaryOpNode(op_tok, node))
+
         node = res.register(
             self.bin_oper(self.arith_expr, (T.EE, T.NE, T.LT, T.GT, T.LTE, T.GTE))
         )
@@ -358,8 +360,8 @@ class Parser:
             return res
 
         while (
-                self.crr_tok.is_type(*operators)
-                or (self.crr_tok.type_, self.crr_tok.value) in operators
+            self.crr_tok.is_type(*operators)
+            or (self.crr_tok.type_, self.crr_tok.value) in operators
         ):
             op_tok = self.crr_tok
             res.register_adv()
@@ -409,9 +411,7 @@ class Parser:
         if res.error:
             return res
 
-        return res.success(
-            ast.IfBlockNode((cond, expr), else_expr)
-        )
+        return res.success(ast.IfBlockNode((cond, expr), else_expr))
 
     def func_def(self):
         # self.cur_tok is KW:fun

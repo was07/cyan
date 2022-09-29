@@ -9,7 +9,17 @@ from cyan.utils import Printer
 from cyan.parser import parse_ast
 from cyan.tokenizer import tokenize
 from cyan.exceptions import RTError
-from cyan.types import RTResult, Number, Bool, String, Function, BuiltInFunction, NoneObj, SymbolMap, Context
+from cyan.types import (
+    RTResult,
+    Number,
+    Bool,
+    String,
+    Function,
+    BuiltInFunction,
+    NoneObj,
+    SymbolMap,
+    Context,
+)
 
 __all__ = ("Interpreter", "build_in_out", "interpret", "run")
 
@@ -17,7 +27,9 @@ __all__ = ("Interpreter", "build_in_out", "interpret", "run")
 class Interpreter:
     def visit(self, node: ast.NodeSelf, ctx: Context) -> RTResult:
         method_name = f"visit_{type(node).__name__}"
-        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(self, method_name, self.no_visit_method)
+        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(
+            self, method_name, self.no_visit_method
+        )
         return method(node, ctx)
 
     def no_visit_method(self, node, ctx: Context):
@@ -79,9 +91,7 @@ class Interpreter:
 
         if value is None:
             return res.failure(
-                RTError(
-                    node.start_pos, node.end_pos, f"'{var_name}' not defined", ctx
-                )
+                RTError(node.start_pos, node.end_pos, f"'{var_name}' not defined", ctx)
             )
 
         value = value.copy().set_pos(node.start_pos, node.end_pos)
@@ -234,9 +244,7 @@ class Interpreter:
     def call_function(self, fn: Function, args):
         res = RTResult()
         print(fn, "\n\n\n")
-        context = Context(
-            fn.name, fn.ctx, fn.start_pos, SymbolMap(fn.ctx.symbol_map)
-        )
+        context = Context(fn.name, fn.ctx, fn.start_pos, SymbolMap(fn.ctx.symbol_map))
 
         if fn.n_params != len(args):
             return res.failure(
@@ -249,7 +257,7 @@ class Interpreter:
                 )
             )
 
-        # interpreter = Interpreter()
+        # self = Interpreter()
 
         # setting parameters to given values
         for i in range(fn.n_params):

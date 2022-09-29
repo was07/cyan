@@ -6,10 +6,25 @@ if TYPE_CHECKING:
     from typing import Optional, TypeAlias, TypeVar
     from cyan.tokens import Token
     from cyan.utils import Pos
+
     NodeSelf: TypeAlias = TypeVar("NodeSelf", bound="Node")
 
 
-__all__ = ("Node", "StatementsNode", "NumberNode", "LiteralNode", "StringNode", "BinOpNode", "UnaryOpNode", "VarAccessNode", "VarAssignNode", "IfBlockNode", "WhileNode", "FuncDefNode", "FuncCallNode")
+__all__ = (
+    "Node",
+    "StatementsNode",
+    "NumberNode",
+    "LiteralNode",
+    "StringNode",
+    "BinOpNode",
+    "UnaryOpNode",
+    "VarAccessNode",
+    "VarAssignNode",
+    "IfBlockNode",
+    "WhileNode",
+    "FuncDefNode",
+    "FuncCallNode",
+)
 
 
 class Node:
@@ -28,7 +43,9 @@ class Node:
 
 
 class StatementsNode(Node):
-    def __init__(self, statements: list[Node], pos_start: Optional[Pos], pos_end: Optional[Pos]):
+    def __init__(
+        self, statements: list[Node], pos_start: Optional[Pos], pos_end: Optional[Pos]
+    ):
         self.statements = statements
         super().set_pos(pos_start, pos_end)
 

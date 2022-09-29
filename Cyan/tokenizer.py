@@ -18,9 +18,9 @@ CHAR_TOKEN_MAP: dict[str, str] = {
 }
 
 LITERALS = frozenset(["true", "false", "none"])
-KEYWORDS = frozenset([
-    "let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun"
-])
+KEYWORDS = frozenset(
+    ["let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun"]
+)
 
 TokenResult = tuple[Token, None] | tuple[None, InvalidSyntaxError]
 
@@ -50,10 +50,7 @@ class Tokenizer:
         dot_count = 0
         pos_start = self.pos.copy()
 
-        while (
-                self.char is not None
-                and self.char.isnumeric() or self.char == "."
-        ):
+        while self.char is not None and self.char.isnumeric() or self.char == ".":
             if self.char == ".":
                 if dot_count == 1:
                     break
@@ -128,9 +125,7 @@ class Tokenizer:
             tok_type = T.LTE
             self.advance()
 
-        return Token(
-            tok_type, start_pos=pos_start, end_pos=self.pos.copy()
-        )
+        return Token(tok_type, start_pos=pos_start, end_pos=self.pos.copy())
 
     def get_greater_then(self) -> Token:
         pos_start = self.pos.copy()
@@ -141,9 +136,7 @@ class Tokenizer:
             tok_type = T.GTE
             self.advance()
 
-        return Token(
-            tok_type, start_pos=pos_start, end_pos=self.pos.copy()
-        )
+        return Token(tok_type, start_pos=pos_start, end_pos=self.pos.copy())
 
     def get_identifier(self) -> Token:
         ident: str = ""
@@ -160,9 +153,7 @@ class Tokenizer:
         else:
             toke_type = T.IDENTIFIER
 
-        return Token(
-            toke_type, ident, pos_start, self.pos.copy()
-        )
+        return Token(toke_type, ident, pos_start, self.pos.copy())
 
     def parse(self):
         tokens = []
@@ -175,9 +166,7 @@ class Tokenizer:
                 tokens.append(self.get_identifier())
                 continue
             elif self.char in CHAR_TOKEN_MAP:
-                tokens.append(
-                    Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos)
-                )
+                tokens.append(Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos))
             elif self.char in ("'", '"'):
                 tokens.append(self.get_string())
             elif self.char == "*":
@@ -196,18 +185,14 @@ class Tokenizer:
                 tokens.append(self.get_greater_then())
             elif self.char.isspace():
                 if self.char == "\n":
-                    tokens.append(
-                        Token(T.NEWLINE, start_pos=self.pos)
-                    )
+                    tokens.append(Token(T.NEWLINE, start_pos=self.pos))
             else:
                 return [], InvalidCharacterError(
                     self.pos, f"Character {repr(self.char)} is invalid."
                 )
             self.advance()
 
-        tokens.append(
-            Token(T.EOF, start_pos=self.pos)
-        )
+        tokens.append(Token(T.EOF, start_pos=self.pos))
         return tokens, None
 
 

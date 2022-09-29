@@ -19,7 +19,17 @@ if TYPE_CHECKING:
     BooleanOperationResultOrError: TypeAlias = BooleanOperationResult | OperationError
 
 
-__all__ = ("RTResult", "Context", "SymbolMap", "NoneObj", "Bool", "Number", "String", "Function", "BuiltInFunction")
+__all__ = (
+    "RTResult",
+    "Context",
+    "SymbolMap",
+    "NoneObj",
+    "Bool",
+    "Number",
+    "String",
+    "Function",
+    "BuiltInFunction",
+)
 
 
 class RTResult:
@@ -153,25 +163,19 @@ class Bool(Object):
 
     @staticmethod
     def converter(obj: Object) -> RTResult:
-        return RTResult().success(
-            Bool(obj.is_truthy())
-        )
+        return RTResult().success(Bool(obj.is_truthy()))
 
     def is_truthy(self) -> Bool:
         return Bool(self.value)
 
     def copy(self) -> Bool:
         return (
-            Bool(self.value)
-            .set_pos(self.start_pos, self.end_pos)
-            .set_context(self.ctx)
+            Bool(self.value).set_pos(self.start_pos, self.end_pos).set_context(self.ctx)
         )
 
     # converters
     def to_number(self) -> RTResult:
-        return RTResult().success(
-            Number(int(self.value))
-        )
+        return RTResult().success(Number(int(self.value)))
 
     # logical operators
     def logic_and(self, other) -> BooleanOperationResult:
@@ -364,9 +368,7 @@ class String(Object):
                     )
                 )
 
-        return RTResult().success(
-            Number(num_value)
-        )
+        return RTResult().success(Number(num_value))
 
     # arithmetic operations
     def operate_plus(self, other: String) -> OperationResultOrError:
@@ -403,7 +405,9 @@ class Function(Object):
 
 
 class BuiltInFunction(Object):
-    def __init__(self, name: str, function: Callable[[Object | tuple[Object]], RTResult]):
+    def __init__(
+        self, name: str, function: Callable[[Object | tuple[Object]], RTResult]
+    ):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
         self.name = name
@@ -421,9 +425,7 @@ class BuiltInFunction(Object):
     def execute(self, args: list) -> RTResult:
         res = RTResult()
 
-        value = res.register(
-            self.function(*args)
-        )
+        value = res.register(self.function(*args))
         if res.error:
             return res
 
@@ -434,11 +436,11 @@ class Context:
     __slots__ = ("name", "parent", "parent_entry_pos", "symbol_map")
 
     def __init__(
-            self,
-            name: str,
-            parent: Optional[Context] = None,
-            parent_entry_pos=None,
-            symbol_map: Optional[SymbolMap] = None
+        self,
+        name: str,
+        parent: Optional[Context] = None,
+        parent_entry_pos=None,
+        symbol_map: Optional[SymbolMap] = None,
     ):
         self.name: str = name
         self.parent = parent

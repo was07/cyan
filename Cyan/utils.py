@@ -7,7 +7,12 @@ class Pos:
     __slots__ = ("index", "file_name", "file_text", "line_num", "char_num")
 
     def __init__(
-        self, file_name: str, file_text: str, index: int, line_num: int, character_num: int
+        self,
+        file_name: str,
+        file_text: str,
+        index: int,
+        line_num: int,
+        character_num: int,
     ):
         self.index = index
         self.file_name = file_name
