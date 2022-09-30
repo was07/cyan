@@ -1,511 +1,49 @@
-from Cyan.tokens import T
-
-from Cyan.utils import RTError
+from __future__ import annotations
 
 # for type hinting
-from typing import Optional
-import Cyan.ast_parser as ast
-from Cyan.utils import Pos, Printer
-
-# for run function
-from Cyan.tokenizer import tokenize
-from Cyan.ast_parser import make_ast
-
-
-class Object:
-    type_name: str
-    pos_start: Optional[Pos]
-    pos_end: Optional[Pos]
-    context: Optional["Context"]
-
-    def __init__(self, type_name="Object"):
-        self.type_name = type_name
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
-
-    def __str__(self):
-        return f"<object-of-type-{self.type_name}>"
-
-    def __repr__(self):
-        return f"<object-of-type-{self.type_name}>"
-
-    def set_pos(self, pos_start=None, pos_end=None):
-        self.pos_start = pos_start
-        self.pos_end = pos_end
-        return self
-
-    def set_context(self, context=None):
-        self.context = context
-        return self
-
-    def is_truthy(self):
-        return Bool(True)
-
-    # arithmetic operations
-    def operate_plus(self, other):
-        return None, self.not_supported("+ operator", other)
-
-    def operate_minus(self, other):
-        return None, self.not_supported("- operator", other)
-
-    def operate_mul(self, other):
-        return None, self.not_supported("* operator", other)
-
-    def operate_div(self, other):
-        return None, self.not_supported("/ operator", other)
-
-    def operate_pow(self, other):
-        return None, self.not_supported("^ operator", other)
-
-    # boolean operations
-    def compare_eq(self, other):
-        return None, self.not_supported("== operator", other)
-
-    def compare_ne(self, other):
-        return None, self.not_supported("!= operator", other)
-
-    def compare_gt(self, other):
-        return None, self.not_supported("> operator", other)
-
-    def compare_lt(self, other):
-        return None, self.not_supported("< operator", other)
-
-    def compare_gte(self, other):
-        return None, self.not_supported(">= operator", other)
-
-    def compare_lte(self, other):
-        return None, self.not_supported("<= operator", other)
-
-    # logical operations
-    def logic_and(self, other):
-        return None, self.not_supported("'and' logic", other)
-
-    def logic_or(self, other):
-        return None, self.not_supported("'or' logic", other)
-
-    def logic_not(self):
-        return None, self.not_supported("'not' logic", self)
-
-    def not_supported(self, what_is_not_supported, other=None):
-        return RTError(
-            self.pos_start,
-            self.pos_end,
-            f"{self.type_name} does not support {what_is_not_supported} with {other.type_name}",
-            self.context,
-        )
-
-
-class NoneObj(Object):
-    def __init__(self):
-        super().__init__("NoneObj")
-
-    def __repr__(self):
-        return "none"
-
-    def __str__(self):
-        return "none"
-
-    def is_truthy(self):
-        return Bool(False)
-
-    def copy(self):
-        return NoneObj()
-
-
-class Bool(Object):
-    def __init__(self, value):
-        Object.__init__(self, "Bool")
-        self.value = bool(value)
-
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
-
-    def __repr__(self):
-        return "true" if self.value else "false"
-
-    def __bool__(self):
-        return self.value
-
-    def __str__(self):
-        return "true" if self.value else "false"
-
-    @staticmethod
-    def converter(obj: Object):
-        return RTResult().success(Bool(obj.is_truthy()))
-
-    def is_truthy(self):
-        return Bool(self.value)
-
-    def copy(self):
-        return (
-            Bool(self.value)
-            .set_pos(self.pos_start, self.pos_end)
-            .set_context(self.context)
-        )
-
-    # converters
-    def to_Number(self):
-        return RTResult().success(Number(int(self.value)))
-
-    # logical operators
-    def logic_and(self, other):
-        return Bool(self.value and other.value).set_context(self.context), None
-
-    def logic_or(self, other):
-        return Bool(self.value or other.value).set_context(self.context), None
-
-    def logic_not(self):
-        return Bool(not self.value).set_context(self.context), None
-
-
-class Number(Object):
-    def __init__(self, value):
-        super().__init__("Number")
-        self.value = value
-
-        self.pos_start = None
-        self.pos_end = None
-        self.context = None
-
-    def __repr__(self):
-        return str(self.value)
-
-    def __bool__(self):
-        return bool(self.value)
-
-    def __str__(self):
-        return str(self.value)
-
-    @staticmethod
-    def converter(obj: Object = None):
-        if obj is None:
-            obj = Number(0)
-        if isinstance(obj, Number):
-            return RTResult().success(Number(obj.value))
-        if hasattr(obj, "to_Number"):
-            return obj.to_Number()
-        else:
-            return RTResult().failure(
-                RTError(
-                    obj.pos_start,
-                    obj.pos_end,
-                    f"Cannot convert {obj.type_name} to Number",
-                    obj.context,
-                )
-            )
-
-    def copy(self):
-        copy = Number(self.value)
-        copy.set_pos(self.pos_start, self.pos_end)
-        copy.set_context(self.context)
-        return copy
-
-    def is_truthy(self):
-        return Bool(bool(self.value))
-
-    # arithmetic operations
-    def operate_plus(self, other):
-        if isinstance(other, Number):
-            return Number(self.value + other.value).set_context(self.context), None
-        else:
-            return Object.operate_plus(self, other)  # makes not supported error
-
-    def operate_minus(self, other):
-        if isinstance(other, Number):
-            return Number(self.value - other.value).set_context(self.context), None
-        else:
-            return Object.operate_minus(self, other)  # makes not supported error
-
-    def operate_mul(self, other):
-        if isinstance(other, Number):
-            return Number(self.value * other.value).set_context(self.context), None
-        else:
-            return Object.operate_mul(self, other)  # makes not supported error
-
-    def operate_div(self, other):
-        if isinstance(other, Number):
-            if other.value == 0:
-                return None, RTError(
-                    other.pos_start, other.pos_end, "Division by Zero", self.context
-                )
-            return Number(self.value / other.value).set_context(self.context), None
-        else:
-            return Object.operate_div(self, other)  # makes not supported error
-
-    def operate_pow(self, other):
-        if isinstance(other, Number):
-            return Number(self.value**other.value).set_context(self.context), None
-        else:
-            return Object.operate_pow(self, other)  # makes not supported error
-
-    # boolean operations
-    def compare_eq(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value == other.value).set_context(self.context), None
-        else:
-            return Object.compare_eq(self, other)  # makes not supported error
-
-    def compare_ne(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value != other.value).set_context(self.context), None
-        else:
-            return Object.compare_ne(self, other)  # makes not supported error
-
-    def compare_gt(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value > other.value).set_context(self.context), None
-        else:
-            return Object.compare_gt(self, other)  # makes not supported error
-
-    def compare_lt(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value < other.value).set_context(self.context), None
-        else:
-            return Object.compare_lt(self, other)  # makes not supported error
-
-    def compare_gte(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value >= other.value).set_context(self.context), None
-        else:
-            return Object.compare_gte(self, other)  # makes not supported error
-
-    def compare_lte(self, other):
-        if isinstance(other, Number):
-            return Bool(self.value <= other.value).set_context(self.context), None
-        else:
-            return Object.compare_lte(self, other)  # makes not supported error
-
-    # logical operations
-    def logic_and(self, other):
-        if isinstance(other, Number):
-            return Bool(int(self.value and other.value)).set_context(self.context), None
-        else:
-            return Object.logic_and(self, other)  # makes not supported error
-
-    def logic_or(self, other):
-        if isinstance(other, Number):
-            return Bool(int(self.value or other.value)).set_context(self.context), None
-        else:
-            return Object.logic_or(self, other)  # makes not supported error
-
-    def logic_not(self):
-        return Bool(int(not self.value)).set_context(self.context), None
-
-
-class String(Object):
-    def __init__(self, value: str):
-        super().__init__("String")
-        self.value = value
-
-    def __repr__(self):
-        return f"'{self.value}'"
-
-    def __str__(self):
-        return str(self.value)
-
-    @staticmethod
-    def converter(obj: Object = None):
-        res = RTResult()
-        if obj is None:
-            return res.success(String(""))
-        elif isinstance(obj, String):
-            return res.success(String(obj.value))
-        else:
-            return res.success(String(obj))
-
-    def copy(self):
-        return (
-            String(self.value)
-            .set_pos(self.pos_start, self.pos_end)
-            .set_context(self.context)
-        )
-
-    def is_truthy(self):
-        return Bool(self.value)
-
-    # converters
-    def to_Number(self):
-        self.value: str
-        num_value = None
-        try:
-            num_value = int(self.value)
-        except ValueError:
-            try:
-                num_value = float(self.value)
-            except ValueError:
-                return RTResult().failure(
-                    RTError(
-                        self.pos_start,
-                        self.pos_end,
-                        f"Cannot convert to Number: {self.value}",
-                        self.context,
-                    )
-                )
-        return RTResult().success(Number(num_value))
-
-    # arithmetic operations
-    def operate_plus(self, other):
-        if isinstance(other, String):
-            return String(self.value + other.value).set_context(self.context), None
-        else:
-            return Object.operate_plus(self, other)
-
-    # boolean operations
-    def compare_eq(self, other):
-        return Bool(self.value == other.value).set_context(self.context), None
-
-    def compare_ne(self, other):
-        return Bool(self.value != other.value).set_context(self.context), None
-
-
-class Function(Object):
-    def __init__(self, name, parameters, body):
-        Object.__init__(self)
-        self.type_name = "Function"
-        self.name = name
-        self.parameters = parameters
-        self.n_parameters = len(parameters)
-        self.body = body
-
-    def __repr__(self):
-        return f"<Function {self.name}>"
-
-    def __str__(self):
-        return f"<Function {self.name}>"
-
-    def execute(self, args):
-        res = RTResult()
-        context = Context(
-            self.name, self.context, self.pos_start, SymbolMap(self.context.symbol_map)
-        )
-
-        if self.n_parameters != len(args):
-            return res.failure(
-                RTError(
-                    self.pos_start,
-                    self.pos_end,
-                    ("Too many" if len(args) > self.n_parameters else "Not enough")
-                    + f" arguments given into {self.name}, takes {len(self.parameters)}",
-                    context,
-                )
-            )
-
-        interpreter = Interpreter()
-
-        # setting parameters to given values
-        for i in range(self.n_parameters):
-            parameter = self.parameters[i]
-            arg = args[i]
-            context.symbol_map.set(parameter.value, arg)
-
-        value = res.register(interpreter.visit(self.body, context))
-        if res.error:
-            return res
-        return res.success(value)
-
-    def copy(self):
-        copy = Function(self.name, self.parameters, self.body)
-        copy.set_context(self.context)
-        copy.set_pos(self.pos_start, self.pos_end)
-        return copy
-
-
-class BuiltInFunction(Object):
-    def __init__(self, name: str, function):
-        Object.__init__(self)
-        self.type_name = "BuiltInFunction"
-        self.name = name
-        self.function = function  # a function that has to return RTResult object
-
-    def __repr__(self):
-        return f"<Built-in Function {self.name}>"
-
-    def __str__(self):
-        return f"<Built-in Function {self.name}>"
-
-    def copy(self):
-        copy = BuiltInFunction(self.name, self.function)
-        copy.set_context(self.context)
-        copy.set_pos(self.pos_start, self.pos_end)
-        return copy
-
-    def execute(self, args: list):
-        res = RTResult()
-
-        value = res.register(self.function(*args))
-        if res.error:
-            return res
-
-        return res.success(value)
-
-
-class RTResult:
-    def __init__(self):
-        self.value = None
-        self.error = None
-
-    def register(self, res):
-        if res.error:
-            self.error = res.error
-        return res.value
-
-    def success(self, value):
-        self.value = value
-        return self
-
-    def failure(self, error: RTError):
-        self.error = error
-        return self
-
-
-class Context:
-    def __init__(
-        self, display_name, parent=None, parent_entry_pos=None, symbol_map=None
-    ):
-        self.display_name: str = display_name
-        self.parent: Context = parent
-        self.parent_entry_pos = parent_entry_pos
-        self.symbol_map: SymbolMap = symbol_map
-
-
-class SymbolMap:
-    def __init__(self, parent=None):
-        self.symbol_map = {}
-        self.parent = parent
-
-    def get(self, var_name):
-        value = self.symbol_map.get(var_name, None)
-        if value is None and self.parent:
-            return self.parent.get(var_name)
-        return value
-
-    def set(self, var_name, value):
-        self.symbol_map[var_name] = value
-
-    def remove(self, var_name):
-        del self.symbol_map[var_name]
+import cyan.ast as ast
+from typing import Callable
+
+from cyan.tokens import T
+from cyan.utils import Printer
+from cyan.parser import parse_ast
+from cyan.tokenizer import tokenize
+from cyan.exceptions import RTError
+from cyan.types import (
+    RTResult,
+    Number,
+    Bool,
+    String,
+    Function,
+    BuiltInFunction,
+    NoneObj,
+    SymbolMap,
+    Context,
+)
+
+__all__ = ("Interpreter", "build_in_out", "interpret", "run")
 
 
 class Interpreter:
-    def visit(self, node, context):
+    def visit(self, node: ast.NodeSelf, ctx: Context) -> RTResult:
         method_name = f"visit_{type(node).__name__}"
-        method = getattr(self, method_name, self.no_visit_method)
-        return method(node, context)
+        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(
+            self, method_name, self.no_visit_method
+        )
+        return method(node, ctx)
 
-    def no_visit_method(self, node, context):
+    def no_visit_method(self, node, ctx: Context):
         Printer.internal_error_p(
             f"Interpreter: visit_{type(node).__name__} method is not defined"
         )
         exit()
 
-    def visit_StatementsNode(self, node: ast.StatementsNode, context):
+    def visit_StatementsNode(self, node: ast.StatementsNode, ctx: Context):
         res = RTResult()
         nodes = []
 
         for statement in node.statements:
-            nodes.append(res.register(self.visit(statement, context)))
+            nodes.append(res.register(self.visit(statement, ctx)))
             if res.error:
                 return res
 
@@ -514,71 +52,69 @@ class Interpreter:
         return res
 
     @staticmethod
-    def visit_NumberNode(node: ast.NumberNode, context):
+    def visit_NumberNode(node: ast.NumberNode, ctx: Context):
         return RTResult().success(
             Number(node.tok.value)
-            .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_pos(node.start_pos, node.end_pos)
+            .set_context(ctx)
         )
 
     @staticmethod
-    def visit_LiteralNode(node: ast.LiteralNode, context):
+    def visit_LiteralNode(node: ast.LiteralNode, ctx: Context):
         res = RTResult()
         if node.tok.value == "true":
             return res.success(
-                Bool(True).set_pos(node.pos_start, node.pos_end).set_context(context)
+                Bool(True).set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
         elif node.tok.value == "false":
             return res.success(
-                Bool(False).set_pos(node.pos_start, node.pos_end).set_context(context)
+                Bool(False).set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
         elif node.tok.value == "none":
             return res.success(
-                NoneObj().set_pos(node.pos_start, node.pos_end).set_context(context)
+                NoneObj().set_pos(node.start_pos, node.end_pos).set_context(ctx)
             )
 
     @staticmethod
-    def visit_StringNode(node: ast.StringNode, context):
+    def visit_StringNode(node: ast.StringNode, ctx: Context):
         return RTResult().success(
             String(node.tok.value)
-            .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_pos(node.start_pos, node.end_pos)
+            .set_context(ctx)
         )
 
     @staticmethod
-    def visit_VarAccessNode(node: ast.VarAccessNode, context):
+    def visit_VarAccessNode(node: ast.VarAccessNode, ctx: Context):
         res = RTResult()
         var_name = node.var_name.value
-        value = context.symbol_map.get(var_name)
+        value = ctx.symbol_map.get(var_name)
 
         if value is None:
             return res.failure(
-                RTError(
-                    node.pos_start, node.pos_end, f"'{var_name}' not defined", context
-                )
+                RTError(node.start_pos, node.end_pos, f"'{var_name}' not defined", ctx)
             )
 
-        value = value.copy().set_pos(node.pos_start, node.pos_end)
+        value = value.copy().set_pos(node.start_pos, node.end_pos)
 
         return res.success(value)
 
-    def visit_VarAssignNode(self, node: ast.VarAssignNode, context):
+    def visit_VarAssignNode(self, node: ast.VarAssignNode, ctx: Context):
         res = RTResult()
         var_name = node.var_name.value
 
-        value = res.register(self.visit(node.value, context))
+        value = res.register(self.visit(node.value, ctx))
         if res.error:
             return res
 
-        context.symbol_map.set(var_name, value)
+        ctx.symbol_map.set(var_name, value)
         return res.success(value)
 
-    def visit_BinOpNode(self, node: ast.BinOpNode, context):
+    def visit_BinOpNode(self, node: ast.BinOpNode, ctx):
         res = RTResult()
-        left = res.register(self.visit(node.left, context))
+        left = res.register(self.visit(node.left, ctx))
         if res.error:
             return res
-        right = res.register(self.visit(node.right, context))
+        right = res.register(self.visit(node.right, ctx))
         if res.error:
             return res
 
@@ -614,17 +150,18 @@ class Interpreter:
             result, error = left.logic_or(right)
 
         if error:
-            return res.failure(error.set_pos(node.pos_start, node.pos_end))
+            return res.failure(error.set_pos(node.start_pos, node.end_pos))
         else:
-            return res.success(result.set_pos(node.pos_start, node.pos_end))
+            return res.success(result.set_pos(node.start_pos, node.end_pos))
 
-    def visit_UnaryOpNode(self, node: ast.UnaryOpNode, context):
+    def visit_UnaryOpNode(self, node: ast.UnaryOpNode, ctx: Context):
         res = RTResult()
-        number = res.register(self.visit(node.node, context))
+        number = res.register(self.visit(node.node, ctx))
         if res.error:
             return res
 
         error = None
+
         if node.oper.is_type(T.MINUS):
             number, error = number.operate_mul(Number(-1))
         elif node.oper.is_equals(T.KW, "not"):
@@ -633,71 +170,118 @@ class Interpreter:
         if error:
             return res.failure(error)
         else:
-            return res.success(number.set_pos(node.pos_start, node.pos_end))
+            return res.success(number.set_pos(node.start_pos, node.end_pos))
 
-    def visit_IfBlockNode(self, node: ast.IfBlockNode, context):
+    def visit_IfBlockNode(self, node: ast.IfBlockNode, ctx: Context):
         res = RTResult()
-        cond = res.register(self.visit(node.case[0], context))
+        cond = res.register(self.visit(node.case[0], ctx))
         if res.error:
             return res
         if cond.is_truthy():
-            value = res.register(self.visit(node.case[1], context))
+            value = res.register(self.visit(node.case[1], ctx))
         else:
-            value = res.register(self.visit(node.else_expr, context))
+            value = res.register(self.visit(node.else_expr, ctx))
 
         if res.error:
             return res
         return res.success(value)
 
-    def visit_WhileNode(self, node: ast.WhileNode, context):
+    def visit_WhileNode(self, node: ast.WhileNode, ctx: Context):
         res = RTResult()
-        cond = res.register(self.visit(node.condition, context))
+        cond = res.register(self.visit(node.condition, ctx))
         if res.error:
             return res
 
         while cond.is_truthy():
-            value = res.register(self.visit(node.body, context))
+            value = res.register(self.visit(node.body, ctx))
             if res.error:
                 return res
-            cond = res.register(self.visit(node.condition, context))
+            cond = res.register(self.visit(node.condition, ctx))
             if res.error:
                 return res
 
         return res.success(NoneObj())
 
     @staticmethod
-    def visit_FuncDefNode(node: ast.FuncDefNode, context):
+    def visit_FuncDefNode(node: ast.FuncDefNode, ctx: Context):
         res = RTResult()
 
         func = (
             Function(node.name, node.parameters, node.body)
-            .set_pos(node.pos_start, node.pos_end)
-            .set_context(context)
+            .set_pos(node.start_pos, node.end_pos)
+            .set_context(ctx)
         )
-        context.symbol_map.set(node.name, func)
+        ctx.symbol_map.set(node.name, func)
 
         return res.success(func)
 
-    def visit_FuncCallNode(self, node: ast.FuncCallNode, context):
+    def visit_FuncCallNode(self, node: ast.FuncCallNode, ctx: Context):
         res = RTResult()
         args = []
 
-        value_to_call = res.register(self.visit(node.node_to_call, context))
+        value_to_call = res.register(self.visit(node.node_to_call, ctx))
         if res.error:
             return res
-        value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
+        value_to_call = value_to_call.copy().set_pos(node.start_pos, node.end_pos)
 
         for arg_node in node.arguments:
-            args.append(res.register(self.visit(arg_node, context)))
+            args.append(res.register(self.visit(arg_node, ctx)))
             if res.error:
                 return res
 
         value_to_call: Function
-        return_value = res.register(value_to_call.execute(args))
+        return_value = res.register(
+            # value_to_call.execute(args),
+            self.call_function(value_to_call, args)
+        )
+
         if res.error:
-            res.error.set_pos(node.pos_start, node.pos_end)
+            res.error.set_pos(node.start_pos, node.end_pos)
             return res
+
         return res.success(return_value)
+
+    def call_function(self, fn: Function | BuiltInFunction, args) -> RTResult:
+        res = RTResult()
+
+        if isinstance(fn, BuiltInFunction):
+            # If function is a builtin
+            value = res.register(fn.function(*args))
+            if res.error:
+                return res
+
+            return res.success(value)
+
+        context = Context(
+            fn.name, fn.ctx, fn.start_pos, SymbolMap(
+                getattr(fn.ctx, "symbol_map", None)
+            )
+        )
+
+        if fn.n_params != len(args):
+            return res.failure(
+                RTError(
+                    fn.start_pos,
+                    fn.end_pos,
+                    ("Too many" if len(args) > fn.n_params else "Not enough")
+                    + f" arguments given into {fn.name}, takes {len(fn.params)}",
+                    context,
+                )
+            )
+
+        # self = Interpreter()
+
+        # setting parameters to given values
+        for i in range(fn.n_params):
+            parameter = fn.params[i]
+            arg = args[i]
+            context.symbol_map.set(parameter.value, arg)
+
+        value = res.register(self.visit(fn.body, context))
+        if res.error:
+            return res
+        else:
+            return res.success(value)
 
 
 def build_in_out(*nodes):
@@ -716,7 +300,7 @@ GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter))
 GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter))
 
 
-def interpret(node, context) -> RTResult:
+def interpret(node: ast.Node, context: Context) -> RTResult:
     interpreter = Interpreter()
     return interpreter.visit(node, context)
 
@@ -729,7 +313,7 @@ def run(file_name, text, debug_mode=False):
     if error is not None:
         return None, error
 
-    node, parse_error = make_ast(tokens)
+    node, parse_error = parse_ast(tokens)
 
     if debug_mode:
         Printer.debug_p("NODE  :", node)
@@ -740,6 +324,7 @@ def run(file_name, text, debug_mode=False):
 
     context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
     res = interpret(node, context)
+
     if res.error:
         return None, res.error
     else:

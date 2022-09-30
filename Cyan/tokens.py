@@ -1,6 +1,6 @@
 # for type hinting
 from typing import Optional
-from Cyan.utils import Pos
+from cyan.utils import Pos
 
 
 class T:
@@ -15,18 +15,18 @@ class T:
     POW = "POW"
 
     EE = "EE"  # ==
-    NE = "NE"
-    LT = "LT"
-    GT = "GT"
-    LTE = "LTE"
-    GTE = "GTE"
+    NE = "NE"  # !=
+    LT = "LT"  # <
+    GT = "GT"  # >
+    LTE = "LTE"  # <=
+    GTE = "GTE"  # >=
 
     EQ = "EQ"  # =
 
-    L_PAREN = "L_PAREN"
-    R_PAREN = "R_PAREN"
-    L_CPAREN = "L_CPAREN"
-    R_CPAREN = "R_CPAREN"
+    L_PAREN = "L_PAREN"  # (
+    R_PAREN = "R_PAREN"  # )
+    L_CPAREN = "L_CPAREN"  # {
+    R_CPAREN = "R_CPAREN"  # }
 
     LITERAL = "LITERAL"
     IDENTIFIER = "IDENTIFIER"
@@ -40,26 +40,26 @@ class T:
 
 
 class Token:
-    pos_start: Optional[Pos]
-    pos_end: Optional[Pos]
+    start_pos: Optional[Pos]
+    end_pos: Optional[Pos]
 
-    def __init__(self, type_, value=None, pos_start=None, pos_end=None):
+    def __init__(self, type_, value=None, start_pos=None, end_pos=None):
         self.type_ = type_
         self.value = value
 
-        if pos_start:
-            self.pos_start = pos_start.copy()
-            self.pos_end = pos_start.copy()
-            self.pos_end.advance()
+        if start_pos:
+            self.start_pos = start_pos.copy()
+            self.end_pos = start_pos.copy()
+            self.end_pos.advance()
 
-        if pos_end:
-            self.pos_end = pos_end.copy()
+        if end_pos:
+            self.end_pos = end_pos.copy()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.type_ + ("" if self.value is None else ":" + str(self.value))
 
-    def is_type(self, *token_name_s):
+    def is_type(self, *token_name_s) -> bool:
         return self.type_ in token_name_s
 
-    def is_equals(self, token_name, value):
+    def is_equals(self, token_name, value) -> bool:
         return self.type_ == token_name and self.value == value
