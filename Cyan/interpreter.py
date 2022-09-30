@@ -241,10 +241,22 @@ class Interpreter:
 
         return res.success(return_value)
 
-    def call_function(self, fn: Function, args):
+    def call_function(self, fn: Function | BuiltInFunction, args) -> RTResult:
         res = RTResult()
-        print(fn, "\n\n\n")
-        context = Context(fn.name, fn.ctx, fn.start_pos, SymbolMap(fn.ctx.symbol_map))
+
+        if isinstance(fn, BuiltInFunction):
+            # If function is a builtin
+            value = res.register(fn.function(*args))
+            if res.error:
+                return res
+
+            return res.success(value)
+
+        context = Context(
+            fn.name, fn.ctx, fn.start_pos, SymbolMap(
+                getattr(fn.ctx, "symbol_map", None)
+            )
+        )
 
         if fn.n_params != len(args):
             return res.failure(
@@ -312,6 +324,7 @@ def run(file_name, text, debug_mode=False):
 
     context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
     res = interpret(node, context)
+
     if res.error:
         return None, res.error
     else:
