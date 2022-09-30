@@ -1,1 +1,5 @@
-out(0)
+let a = 1
+while a <= 5 {
+    out(a)
+    let a = a + 1
+}
