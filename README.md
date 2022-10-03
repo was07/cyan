@@ -78,6 +78,7 @@ Output
 | Boolean   | `Bool()`    | `true`, `false`                      |
 | None      |             | `none`                               |
 
-| Build-in Function | Usage                |
-|-------------------|----------------------|
-| `out()`           | make standard output |
+| Build-in Function | parameters | Usage                                                                                |
+|-------------------|------------|--------------------------------------------------------------------------------------|
+| `out()`           | values*    | make standard output. Joins all values with a single space, if there is more than one |
+| `inp()`           |            | Takes standard input and returns `Str` object                                        |
