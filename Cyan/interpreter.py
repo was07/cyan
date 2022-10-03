@@ -244,6 +244,23 @@ class Interpreter:
     def call_function(self, fn: Function | BuiltInFunction, args) -> RTResult:
         res = RTResult()
 
+        context = Context(
+            fn.name, fn.ctx, fn.start_pos, SymbolMap(
+                getattr(fn.ctx, "symbol_map", None)
+            )
+        )
+
+        if fn.n_params != len(args) and fn.n_params != float('inf'):
+            return res.failure(
+                RTError(
+                    fn.start_pos,
+                    fn.end_pos,
+                    ("Too many" if len(args) > fn.n_params else "Not enough")
+                    + f" ({len(args)}) arguments given into {fn.name}, takes {fn.n_params}",
+                    context,
+                )
+            )
+
         if isinstance(fn, BuiltInFunction):
             # If function is a builtin
             value = res.register(fn.function(*args))
@@ -251,25 +268,6 @@ class Interpreter:
                 return res
 
             return res.success(value)
-
-        context = Context(
-            fn.name, fn.ctx, fn.start_pos, SymbolMap(
-                getattr(fn.ctx, "symbol_map", None)
-            )
-        )
-
-        if fn.n_params != len(args):
-            return res.failure(
-                RTError(
-                    fn.start_pos,
-                    fn.end_pos,
-                    ("Too many" if len(args) > fn.n_params else "Not enough")
-                    + f" arguments given into {fn.name}, takes {len(fn.params)}",
-                    context,
-                )
-            )
-
-        # self = Interpreter()
 
         # setting parameters to given values
         for i in range(fn.n_params):
@@ -284,20 +282,26 @@ class Interpreter:
             return res.success(value)
 
 
-def build_in_out(*nodes):
-    if len(nodes) != 1:
-        Printer.output_p(" ".join(map(str, nodes)))
+def build_in_out(*values):
+    if len(values) != 1:
+        Printer.output_p(" ".join(map(str, values)))
     else:
-        Printer.output_p(str(nodes[0]))
+        Printer.output_p(str(values[0]))
     Printer.output_p("\n")
     return RTResult().success(NoneObj())
 
 
+def build_in_inp():
+    inp = String(input())
+    return RTResult().success(inp)
+
+
 GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out))
-GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter))
-GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter))
-GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter))
+GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float('inf')))
+GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
+GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))
+GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter, 1))
+GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
 
 
 def interpret(node: ast.Node, context: Context) -> RTResult:

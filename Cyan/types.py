@@ -391,7 +391,7 @@ class Function(Object):
         self.type_name: str = "Function"
         self.name = name
         self.params = parameters
-        self.n_params = len(parameters)
+        self.n_params = len(parameters)  # can be inf
         self.body = body
 
     def __str__(self) -> str:
@@ -406,24 +406,28 @@ class Function(Object):
 
 class BuiltInFunction(Object):
     def __init__(
-        self, name: str, function: Callable[[Object | tuple[Object]], RTResult]
+        self, name: str, function: Callable[[Object | tuple[Object]], RTResult], n_params: int
     ):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
         self.name = name
         self.function = function  # a function that has to return RTResult object
+        self.n_params = n_params  # can be inf
 
     def __str__(self) -> str:
         return f"<Built-in Function {self.name}>"
 
     def copy(self) -> ObjectSelf:
-        copy = BuiltInFunction(self.name, self.function)
+        copy = BuiltInFunction(self.name, self.function, self.n_params)
         copy.set_context(self.ctx)
         copy.set_pos(self.start_pos, self.end_pos)
         return copy
 
     def execute(self, args: list) -> RTResult:
         res = RTResult()
+
+        if len(args) != self.n_params:
+            return res.error()
 
         value = res.register(self.function(*args))
         if res.error:
