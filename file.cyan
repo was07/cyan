@@ -1,5 +1,5 @@
 let a = 1
-while a <= 5 {
+while a <= 5 {  # this is a comment
     out(a)
     let a = a + 1
 }

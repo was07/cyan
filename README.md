@@ -5,13 +5,14 @@ Cyan. A high-level, functional programming language with syntax focused on reada
 
 ## Current features
 
-- String, number, boolean and none datatype
+- NoneType, String, Number and Boolean datatype
 - variables
 - binary and unary operations
 - if/else expressions
 - while loops
 - functions
 - lambda functions
+- comments
 
 ## Usage
 
@@ -55,7 +56,7 @@ none
 Code
 ```py
 let a = 1
-while a <= 5 {
+while a <= 5 {  # this is a comment
     out(a)
     let a = a + 1
 }

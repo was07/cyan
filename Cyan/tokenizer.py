@@ -38,6 +38,7 @@ class Tokenizer:
         self.advance()
 
     def advance(self) -> None:
+        """Move to next token position"""
         self.pos.advance(self.char == "\n")
         if self.pos.index >= self.text_length:
             self.char = None
@@ -156,6 +157,7 @@ class Tokenizer:
         return Token(toke_type, ident, pos_start, self.pos.copy())
 
     def parse(self):
+        """parse code"""
         tokens = []
 
         while self.char is not None:
@@ -186,12 +188,16 @@ class Tokenizer:
             elif self.char.isspace():
                 if self.char == "\n":
                     tokens.append(Token(T.NEWLINE, start_pos=self.pos))
+            elif self.char == "#":  # Comment getting ignored
+                while self.char not in ("\n", None):
+                    self.advance()
+                continue
             else:
                 return [], InvalidCharacterError(
                     self.pos, f"Character {repr(self.char)} is invalid."
                 )
             self.advance()
-
+        
         tokens.append(Token(T.EOF, start_pos=self.pos))
         return tokens, None
 
