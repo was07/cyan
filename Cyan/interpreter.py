@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 
 # for type hinting
 import cyan.ast as ast
@@ -310,24 +311,31 @@ def interpret(node: ast.Node, context: Context) -> RTResult:
 
 
 def run(file_name, text, debug_mode=False):
+    if debug_mode: t1 = time.perf_counter()
     tokens, error = tokenize(file_name, text)
+    if debug_mode: t2 = time.perf_counter()
     if debug_mode:
-        Printer.debug_p("TOKENS:", *tokens)
+        Printer.time_p(f"Tokenized {round(t2-t1, 5)}s")
+        Printer.debug_p("TOKENS: ", *tokens)
 
     if error is not None:
         return None, error
 
     node, parse_error = parse_ast(tokens)
-
     if debug_mode:
-        Printer.debug_p("NODE  :", node)
-        Printer.debug_p("------")
+        t3 = time.perf_counter()
+        Printer.time_p(f"Parsed {round(t3-t2, 5)}s")
+        Printer.debug_p("NODE: ", node)
 
     if parse_error is not None:
         return None, parse_error
 
     context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
     res = interpret(node, context)
+    
+    if debug_mode:
+        t4 = time.perf_counter()
+        Printer.time_p(f"Run time {round(t4-t3, 5)}s, Total {round(t4-t1, 5)}s")
 
     if res.error:
         return None, res.error

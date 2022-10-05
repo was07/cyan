@@ -71,8 +71,9 @@ def pos_highlight(text: str, pos_start: Pos, pos_end: Pos) -> str:
 class _CLR:
     __slots__ = ()
     RESET = "\u001b[0m"
-    DEBUG_CLR = "\u001b[33;1m"
+    DEBUG_CLR = "\u001b[30;1m"
     ERROR_CLR = "\u001b[31;1m"
+    TIME_CLR = "\u001b[36m"
     SEPERATOR_CLR = ""
 
 
@@ -98,3 +99,9 @@ class Printer:
     @staticmethod
     def output_p(text, end="") -> None:
         sys.stdout.write(text + end)
+    
+    @staticmethod
+    def time_p(title):
+        print(end=_CLR.TIME_CLR)
+        print(title)
+        print(end=_CLR.RESET)
