@@ -1,39 +1,31 @@
 import sys
+from dataclasses import dataclass
 
 __all__ = ("Pos", "pos_highlight", "Printer")
 
 
+@dataclass(slots=True)
 class Pos:
-    __slots__ = ("index", "file_name", "file_text", "line_num", "char_num")
-
-    def __init__(
-        self,
-        file_name: str,
-        file_text: str,
-        index: int,
-        line_num: int,
-        character_num: int,
-    ):
-        self.index = index
-        self.file_name = file_name
-        self.file_text = file_text
-        self.line_num = line_num
-        self.char_num = character_num
+    filename: str
+    file_text: str
+    idx: int
+    line_num: int
+    char_num: int
 
     def __repr__(self) -> str:
         return f"Pos(line {self.line_num}, char {self.char_num})"
 
-    def advance(self, new_line=False) -> None:
-        if new_line:
+    def advance(self, newline=False) -> None:
+        if newline:
             self.char_num = 1
             self.line_num += 1
         else:
             self.char_num += 1
-        self.index += 1
+        self.idx += 1
 
     def copy(self):
         return Pos(
-            self.file_name, self.file_text, self.index, self.line_num, self.char_num
+            self.filename, self.file_text, self.idx, self.line_num, self.char_num
         )
 
 
@@ -41,7 +33,7 @@ def pos_highlight(text: str, start_pos: Pos, end_pos: Pos) -> str:
     result = ""
 
     # Calculate indices
-    idx_start: int = max(text.rfind("\n", 0, start_pos.index), 0)
+    idx_start: int = max(text.rfind("\n", 0, start_pos.idx), 0)
     idx_end: int = text.find("\n", idx_start + 1)
 
     if idx_end < 0:

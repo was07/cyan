@@ -127,7 +127,7 @@ class Object:
     def logic_not(self) -> OperationError:
         return None, self.not_supported("'not' logic", self)
 
-    def not_supported(self, what_is_not_supported, other=None) -> RTError:
+    def not_supported(self, what_is_not_supported: str, other: Object) -> RTError:
         return RTError(
             self.start_pos,
             self.end_pos,
@@ -154,7 +154,7 @@ class NoneObj(Object):
 class Bool(Object):
     def __init__(self, value):
         super().__init__("Bool")
-        self.value = bool(value)
+        self.value: bool = bool(value)
 
     def __str__(self) -> str:
         return "true" if self.value else "false"

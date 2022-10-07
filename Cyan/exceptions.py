@@ -22,7 +22,7 @@ class Error:
 
     def __repr__(self):
         result = (
-            f'Traceback [{self.ecode}]: file "{self.pos_start.file_name}", line {self.pos_start.line_num + 1}.\n'
+            f'Traceback [{self.ecode}]: file "{self.pos_start.filename}", line {self.pos_start.line_num + 1}.\n'
             + pos_highlight(self.pos_start.file_text, self.pos_start, self.pos_end)
             + f"\n{self.name}: {self.info}"
         )
@@ -53,7 +53,7 @@ class RTError(Error):
         ctx = self.context
 
         while ctx:
-            result = f"  File {pos.file_name}, line {str(pos.line_num + 1)}, in {ctx.name}.\n{result}"
+            result = f"  File {pos.filename}, line {str(pos.line_num + 1)}, in {ctx.name}.\n{result}"
             pos = ctx.parent_entry_pos
             ctx = ctx.parent
 
@@ -69,4 +69,3 @@ class InvalidCharacterError(Error):
 class InvalidSyntaxError(Error):
     def __init__(self, pos_start, pos_end, info=""):
         super().__init__("SyntaxError", pos_start, pos_end, info)
-

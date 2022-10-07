@@ -40,11 +40,11 @@ class Tokenizer:
     def advance(self) -> None:
         """Move to next token position"""
         self.pos.advance(self.char == "\n")
-        if self.pos.index >= self.text_length:
+        if self.pos.idx >= self.text_length:
             self.char = None
             return
 
-        self.char = self.text[self.pos.index]
+        self.char = self.text[self.pos.idx]
 
     def get_number(self) -> Token:
         num_str = ""
