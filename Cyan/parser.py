@@ -12,7 +12,6 @@ class ParseResult:
     __slots__ = (
         "error",
         "node",
-        "last_registered_advance_count",
         "advancements",
         "to_reverse_count",
     )
@@ -20,17 +19,14 @@ class ParseResult:
     def __init__(self):
         self.error = None
         self.node = None
-        self.last_registered_advance_count = 0
         self.advancements = 0
         self.to_reverse_count = 0
 
     def register_advancement(self):
-        self.last_registered_advance_count = 1
         self.advancements += 1
 
     def register_adv(self):
         self.advancements += 1
-        pass
 
     def register(self, res) -> ast.Node:
         self.advancements += res.advancements

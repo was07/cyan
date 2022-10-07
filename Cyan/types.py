@@ -355,7 +355,7 @@ class String(Object):
         return Bool(self.value)
 
     # converters
-    def to_Number(self) -> RTResult:
+    def to_number(self) -> RTResult:
         self.value: str
         num_value = None
         try:
