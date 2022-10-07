@@ -34,7 +34,7 @@ class Interpreter:
         return method(node, ctx)
 
     def no_visit_method(self, node, ctx: Context):
-        Printer.internal_error_p(
+        Printer.internal_error(
             f"Interpreter: visit_{type(node).__name__} method is not defined"
         )
         exit()
@@ -246,12 +246,13 @@ class Interpreter:
         res = RTResult()
 
         context = Context(
-            fn.name, fn.ctx, fn.start_pos, SymbolMap(
-                getattr(fn.ctx, "symbol_map", None)
-            )
+            fn.name,
+            fn.ctx,
+            fn.start_pos,
+            SymbolMap(getattr(fn.ctx, "symbol_map", None)),
         )
 
-        if fn.n_params != len(args) and fn.n_params != float('inf'):
+        if fn.n_params != len(args) and fn.n_params != float("inf"):
             return res.failure(
                 RTError(
                     fn.start_pos,
@@ -285,10 +286,10 @@ class Interpreter:
 
 def build_in_out(*values):
     if len(values) != 1:
-        Printer.output_p(" ".join(map(str, values)))
+        Printer.output(" ".join(map(str, values)))
     else:
-        Printer.output_p(str(values[0]))
-    Printer.output_p("\n")
+        Printer.output(str(values[0]))
+    Printer.output("\n")
     return RTResult().success(NoneObj())
 
 
@@ -328,8 +329,8 @@ def run_debug(filename: str, code: str):
     tokens, error = tokenize(filename, code)
     t2 = time.perf_counter()
 
-    Printer.time_p(f"Tokenized {round(t2-t1, 5)}s")
-    Printer.debug_p("TOKENS: ", *tokens)
+    Printer.time(f"Tokenized {round(t2 - t1, 5)}s")
+    Printer.debug("TOKENS: ", *tokens)
 
     if error is not None:
         return None, error
@@ -337,9 +338,9 @@ def run_debug(filename: str, code: str):
     t1 = time.perf_counter()
     node, parse_error = parse_ast(tokens)
     t2 = time.perf_counter()
-    
-    Printer.time_p(f"Parsed {round(t2-t1, 5)}s")
-    Printer.debug_p("NODE: ", node)
+
+    Printer.time(f"Parsed {round(t2 - t1, 5)}s")
+    Printer.debug("NODE: ", node)
 
     if parse_error is not None:
         return None, parse_error
@@ -349,9 +350,7 @@ def run_debug(filename: str, code: str):
     res = interpret(node, context)
     t2 = time.perf_counter()
 
-    Printer.time_p(
-        f"Run time {round(t2-t1, 5)}s, Total {round(t2-start_t, 5)}s"
-    )
+    Printer.time(f"Run time {round(t2 - t1, 5)}s, Total {round(t2 - start_t, 5)}s")
 
     if res.error:
         return None, res.error
@@ -360,7 +359,7 @@ def run_debug(filename: str, code: str):
 
 
 GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float('inf')))
+GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float("inf")))
 GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
 GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
 GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))

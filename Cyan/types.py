@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from cyan.exceptions import RTError
 
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from cyan.tokens import Token
     from cyan.utils import Pos
 
-    ObjectSelf: TypeAlias = TypeVar("ObjectSelf", bound="Object")
+    ObjectSelf = TypeVar("ObjectSelf", bound="Object")
     OperationResult: TypeAlias = tuple[ObjectSelf, None]
     OperationError: TypeAlias = tuple[None, RTError]
 
@@ -170,12 +171,16 @@ class Bool(Object):
 
     def copy(self) -> Bool:
         return (
-            Bool(self.value).set_pos(self.start_pos, self.end_pos).set_context(self.ctx)
+            Bool(self.value)
+            .set_pos(self.start_pos, self.end_pos)
+            .set_context(self.ctx)
         )
 
     # converters
     def to_number(self) -> RTResult:
-        return RTResult().success(Number(int(self.value)))
+        return RTResult().success(
+            Number(int(self.value))
+        )
 
     # logical operators
     def logic_and(self, other) -> BooleanOperationResult:
@@ -406,7 +411,10 @@ class Function(Object):
 
 class BuiltInFunction(Object):
     def __init__(
-        self, name: str, function: Callable[[Object | tuple[Object]], RTResult], n_params: int
+        self,
+        name: str,
+        function: Callable[[Object | tuple[Object]], RTResult],
+        n_params: int,
     ):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"

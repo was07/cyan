@@ -58,7 +58,7 @@ def main():
     """
     debug = False
     argv = sys.argv[1:]
-    
+
     if "-d" in argv:
         debug = True
         argv.remove("-d")
