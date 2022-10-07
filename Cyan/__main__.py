@@ -2,14 +2,19 @@ import os
 import sys
 
 from cyan import __version__
-from cyan.interpreter import run
+from cyan.interpreter import run, run_debug
 
 
 def shell(debug_mode=False):
-    print(
-        f"Cyan {__version__} shell on {sys.platform}"
-        + (" (with debug mode enabled)" if debug_mode else "")
-    )
+    print(f"Cyan {__version__} shell on {sys.platform}", end=" ")
+
+    if debug_mode:
+        _run_fn = run_debug
+        print("[DEBUG MODE]")
+    else:
+        _run_fn = run
+        print()
+
     while True:
         try:
             text = input(">>> ")
@@ -21,7 +26,7 @@ def shell(debug_mode=False):
         if text.strip() == "":
             continue
 
-        result, error = run("<stdin>", text, debug_mode=debug_mode)
+        result, error = _run_fn("<stdin>", text)
 
         if error:
             print(error)
@@ -29,11 +34,16 @@ def shell(debug_mode=False):
             print(result)
 
 
-def run_file(filename, debug_mode):
+def run_file(filename: str, debug_mode: bool):
     with open(filename) as file:
-        text = file.read()
+        src = file.read()
 
-    result, error = run(filename, text, debug_mode=debug_mode)
+    if debug_mode:
+        res = run_debug(filename, src)
+    else:
+        res = run(filename, src)
+
+    result, error = res
 
     if error:
         print(error)
@@ -48,6 +58,7 @@ def main():
     """
     debug = False
     argv = sys.argv[1:]
+    
     if "-d" in argv:
         debug = True
         argv.remove("-d")

@@ -22,7 +22,7 @@ from cyan.types import (
     Context,
 )
 
-__all__ = ("Interpreter", "build_in_out", "interpret", "run")
+__all__ = ("Interpreter", "build_in_out", "interpret", "run", "run_debug")
 
 
 class Interpreter:
@@ -297,47 +297,71 @@ def build_in_inp():
     return RTResult().success(inp)
 
 
-GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float('inf')))
-GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
-GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))
-GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter, 1))
-GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
-
-
 def interpret(node: ast.Node, context: Context) -> RTResult:
     interpreter = Interpreter()
     return interpreter.visit(node, context)
 
 
-def run(file_name, text, debug_mode=False):
-    if debug_mode: t1 = time.perf_counter()
-    tokens, error = tokenize(file_name, text)
-    if debug_mode: t2 = time.perf_counter()
-    if debug_mode:
-        Printer.time_p(f"Tokenized {round(t2-t1, 5)}s")
-        Printer.debug_p("TOKENS: ", *tokens)
+def run(filename: str, code: str):
+    tokens, error = tokenize(filename, code)
 
     if error is not None:
         return None, error
 
     node, parse_error = parse_ast(tokens)
-    if debug_mode:
-        t3 = time.perf_counter()
-        Printer.time_p(f"Parsed {round(t3-t2, 5)}s")
-        Printer.debug_p("NODE: ", node)
 
     if parse_error is not None:
         return None, parse_error
 
     context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
     res = interpret(node, context)
-    
-    if debug_mode:
-        t4 = time.perf_counter()
-        Printer.time_p(f"Run time {round(t4-t3, 5)}s, Total {round(t4-t1, 5)}s")
 
     if res.error:
         return None, res.error
     else:
         return res.value, None
+
+
+def run_debug(filename: str, code: str):
+    start_t = time.perf_counter()
+    t1 = start_t
+    tokens, error = tokenize(filename, code)
+    t2 = time.perf_counter()
+
+    Printer.time_p(f"Tokenized {round(t2-t1, 5)}s")
+    Printer.debug_p("TOKENS: ", *tokens)
+
+    if error is not None:
+        return None, error
+
+    t1 = time.perf_counter()
+    node, parse_error = parse_ast(tokens)
+    t2 = time.perf_counter()
+    
+    Printer.time_p(f"Parsed {round(t2-t1, 5)}s")
+    Printer.debug_p("NODE: ", node)
+
+    if parse_error is not None:
+        return None, parse_error
+
+    t1 = time.perf_counter()
+    context = Context("<module>", symbol_map=GLOBAL_SYMBOL_MAP)
+    res = interpret(node, context)
+    t2 = time.perf_counter()
+
+    Printer.time_p(
+        f"Run time {round(t2-t1, 5)}s, Total {round(t2-start_t, 5)}s"
+    )
+
+    if res.error:
+        return None, res.error
+    else:
+        return res.value, None
+
+
+GLOBAL_SYMBOL_MAP = SymbolMap()
+GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float('inf')))
+GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
+GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
+GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))
+GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter, 1))
