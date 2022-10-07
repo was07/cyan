@@ -444,20 +444,12 @@ class BuiltInFunction(Object):
         return res.success(value)
 
 
+@dataclass(slots=True, frozen=True)
 class Context:
-    __slots__ = ("name", "parent", "parent_entry_pos", "symbol_map")
-
-    def __init__(
-        self,
-        name: str,
-        parent: Optional[Context] = None,
-        parent_entry_pos=None,
-        symbol_map: Optional[SymbolMap] = None,
-    ):
-        self.name: str = name
-        self.parent = parent
-        self.parent_entry_pos = parent_entry_pos
-        self.symbol_map = symbol_map
+    name: str
+    parent: Optional[Context] = None
+    parent_entry_pos: Optional[Pos] = None
+    symbol_map: Optional[SymbolMap] = None
 
 
 class SymbolMap:
