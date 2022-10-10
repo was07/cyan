@@ -81,9 +81,6 @@ class Parser:
     def parse(self):
         res = self.statements()
         if res.error is None and (not self.crr_tok.is_type(T.EOF, T.NEWLINE)):
-            from cyan.utils import Printer
-
-            Printer.debug(self.crr_tok)
             res.failure(
                 InvalidSyntaxError(
                     self.crr_tok.start_pos, self.crr_tok.end_pos, "Invalid Syntax"
