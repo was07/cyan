@@ -12,7 +12,6 @@ class ParseResult:
     __slots__ = (
         "error",
         "node",
-        "last_registered_advance_count",
         "advancements",
         "to_reverse_count",
     )
@@ -20,17 +19,14 @@ class ParseResult:
     def __init__(self):
         self.error = None
         self.node = None
-        self.last_registered_advance_count = 0
         self.advancements = 0
         self.to_reverse_count = 0
 
     def register_advancement(self):
-        self.last_registered_advance_count = 1
         self.advancements += 1
 
     def register_adv(self):
         self.advancements += 1
-        pass
 
     def register(self, res) -> ast.Node:
         self.advancements += res.advancements
@@ -87,7 +83,7 @@ class Parser:
         if res.error is None and (not self.crr_tok.is_type(T.EOF, T.NEWLINE)):
             from cyan.utils import Printer
 
-            Printer.debug_p(self.crr_tok)
+            Printer.debug(self.crr_tok)
             res.failure(
                 InvalidSyntaxError(
                     self.crr_tok.start_pos, self.crr_tok.end_pos, "Invalid Syntax"

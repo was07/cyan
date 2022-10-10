@@ -40,11 +40,11 @@ class Tokenizer:
     def advance(self) -> None:
         """Move to next token position"""
         self.pos.advance(self.char == "\n")
-        if self.pos.index >= self.text_length:
+        if self.pos.idx >= self.text_length:
             self.char = None
             return
 
-        self.char = self.text[self.pos.index]
+        self.char = self.text[self.pos.idx]
 
     def get_number(self) -> Token:
         num_str = ""
@@ -71,7 +71,7 @@ class Tokenizer:
             )
 
     def get_string(self) -> Token:
-        # self.car can be ' or "
+        # self.char can be ' or "
         start_pos = self.pos.copy()
         content = ""
         quote_used = self.char
@@ -158,7 +158,7 @@ class Tokenizer:
 
     def parse(self):
         """parse code"""
-        tokens = []
+        tokens: list[Token] = []
 
         while self.char is not None:
             if self.char.isnumeric():
@@ -197,7 +197,7 @@ class Tokenizer:
                     self.pos, f"Character {repr(self.char)} is invalid."
                 )
             self.advance()
-        
+
         tokens.append(Token(T.EOF, start_pos=self.pos))
         return tokens, None
 

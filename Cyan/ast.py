@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Optional, TypeAlias, TypeVar
+    from typing import Optional, TypeVar
     from cyan.tokens import Token
     from cyan.utils import Pos
 
-    NodeSelf: TypeAlias = TypeVar("NodeSelf", bound="Node")
+    NodeSelf = TypeVar("NodeSelf", bound="Node")
 
 
 __all__ = (

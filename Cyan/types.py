@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from cyan.exceptions import RTError
 
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from cyan.tokens import Token
     from cyan.utils import Pos
 
-    ObjectSelf: TypeAlias = TypeVar("ObjectSelf", bound="Object")
+    ObjectSelf = TypeVar("ObjectSelf", bound="Object")
     OperationResult: TypeAlias = tuple[ObjectSelf, None]
     OperationError: TypeAlias = tuple[None, RTError]
 
@@ -126,7 +127,7 @@ class Object:
     def logic_not(self) -> OperationError:
         return None, self.not_supported("'not' logic", self)
 
-    def not_supported(self, what_is_not_supported, other=None) -> RTError:
+    def not_supported(self, what_is_not_supported: str, other: Object) -> RTError:
         return RTError(
             self.start_pos,
             self.end_pos,
@@ -153,7 +154,7 @@ class NoneObj(Object):
 class Bool(Object):
     def __init__(self, value):
         super().__init__("Bool")
-        self.value = bool(value)
+        self.value: bool = bool(value)
 
     def __str__(self) -> str:
         return "true" if self.value else "false"
@@ -170,12 +171,16 @@ class Bool(Object):
 
     def copy(self) -> Bool:
         return (
-            Bool(self.value).set_pos(self.start_pos, self.end_pos).set_context(self.ctx)
+            Bool(self.value)
+            .set_pos(self.start_pos, self.end_pos)
+            .set_context(self.ctx)
         )
 
     # converters
     def to_number(self) -> RTResult:
-        return RTResult().success(Number(int(self.value)))
+        return RTResult().success(
+            Number(int(self.value))
+        )
 
     # logical operators
     def logic_and(self, other) -> BooleanOperationResult:
@@ -406,7 +411,10 @@ class Function(Object):
 
 class BuiltInFunction(Object):
     def __init__(
-        self, name: str, function: Callable[[Object | tuple[Object]], RTResult], n_params: int
+        self,
+        name: str,
+        function: Callable[[Object | tuple[Object]], RTResult],
+        n_params: int,
     ):
         Object.__init__(self)
         self.type_name = "BuiltInFunction"
@@ -436,20 +444,12 @@ class BuiltInFunction(Object):
         return res.success(value)
 
 
+@dataclass(slots=True, frozen=True)
 class Context:
-    __slots__ = ("name", "parent", "parent_entry_pos", "symbol_map")
-
-    def __init__(
-        self,
-        name: str,
-        parent: Optional[Context] = None,
-        parent_entry_pos=None,
-        symbol_map: Optional[SymbolMap] = None,
-    ):
-        self.name: str = name
-        self.parent = parent
-        self.parent_entry_pos = parent_entry_pos
-        self.symbol_map = symbol_map
+    name: str
+    parent: Optional[Context] = None
+    parent_entry_pos: Optional[Pos] = None
+    symbol_map: Optional[SymbolMap] = None
 
 
 class SymbolMap:
