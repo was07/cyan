@@ -25,6 +25,7 @@ atom       : INT | FLOAT | IDENTIFIER | LITERAL
            : func-def
 
 if-expr    : KW:if comp-expr KW:then expr KW:else expr
+           : KW:if comp-expr KW:then L_CPAREN statements R_CPAREN KW:else L_CPAREN statements R_CPAREN
 
 while-expr : KW:while comp-expr L_CPAREN statements R_CPAREN
 
