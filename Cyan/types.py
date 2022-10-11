@@ -177,7 +177,7 @@ class Bool(Object):
         return Bool(self.value)
 
     # converters
-    def to_number(self) -> RTResult:
+    def to_Number(self) -> RTResult:
         return RTResult().success(
             Number(int(self.value))
         )
