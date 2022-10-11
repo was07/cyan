@@ -40,7 +40,7 @@ class T:
 
 
 class Token:
-    __slots__ = ("start_pos", "end_pos", "type_", "value")
+    __slots__ = ("start_pos", "end_pos", "tok_type", "value")
     start_pos: Optional[Pos]
     end_pos: Optional[Pos]
 
