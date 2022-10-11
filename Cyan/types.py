@@ -79,6 +79,13 @@ class Object:
         self.ctx = context
         return self
 
+    def copy(self) -> ObjectSelf:
+        copy = self.__class__(self.value)
+        copy.set_pos(self.start_pos, self.end_pos)
+        copy.set_context(self.ctx)
+        
+        return copy
+        
     def is_truthy(self) -> Bool:
         return Bool(True)
 
@@ -169,13 +176,6 @@ class Bool(Object):
     def is_truthy(self) -> Bool:
         return Bool(self.value)
 
-    def copy(self) -> Bool:
-        return (
-            Bool(self.value)
-            .set_pos(self.start_pos, self.end_pos)
-            .set_context(self.ctx)
-        )
-
     # converters
     def to_number(self) -> RTResult:
         return RTResult().success(
@@ -221,12 +221,6 @@ class Number(Object):
                     obj.ctx,
                 )
             )
-
-    def copy(self) -> Number:
-        copy = Number(self.value)
-        copy.set_pos(self.start_pos, self.end_pos)
-        copy.set_context(self.ctx)
-        return copy
 
     def is_truthy(self) -> Bool:
         return Bool(bool(self.value))
@@ -344,13 +338,6 @@ class String(Object):
 
         return res.success(String(value))
 
-    def copy(self) -> ObjectSelf:
-        return (
-            String(self.value)
-            .set_pos(self.start_pos, self.end_pos)
-            .set_context(self.ctx)
-        )
-
     def is_truthy(self) -> Bool:
         return Bool(self.value)
 
@@ -403,11 +390,12 @@ class Function(Object):
         return f"<Function {self.name}>"
 
     def copy(self) -> ObjectSelf:
-        copy = Function(self.name, self.params, self.body)
-        copy.set_context(self.ctx)
-        copy.set_pos(self.start_pos, self.end_pos)
-        return copy
-
+        return (
+            Function(self.name, self.params, self.body)
+            .set_context(self.ctx)
+            .set_pos(self.start_pos, self.end_pos)
+        )
+        
 
 class BuiltInFunction(Object):
     def __init__(
@@ -426,10 +414,12 @@ class BuiltInFunction(Object):
         return f"<Built-in Function {self.name}>"
 
     def copy(self) -> ObjectSelf:
-        copy = BuiltInFunction(self.name, self.function, self.n_params)
-        copy.set_context(self.ctx)
-        copy.set_pos(self.start_pos, self.end_pos)
-        return copy
+        return (
+            BuiltInFunction(self.name, self.function, self.n_params)
+            .set_context(self.ctx)
+            .set_pos(self.start_pos, self.end_pos)
+        )
+
 
     def execute(self, args: list) -> RTResult:
         res = RTResult()
