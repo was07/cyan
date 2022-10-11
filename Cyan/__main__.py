@@ -62,10 +62,10 @@ def main():
     if "-d" in argv:
         debug = True
         argv.remove("-d")
-        
+
     if not argv:
         shell(debug_mode=debug)
-        
+
     if "--version" in argv:
         print(__version__)
         sys.exit(0)

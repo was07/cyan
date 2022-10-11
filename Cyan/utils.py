@@ -49,10 +49,7 @@ def pos_highlight(text: str, start_pos: Pos, end_pos: Pos) -> str:
         col_end = end_pos.char_num if i == line_count - 1 else len(line) - 1
 
         # Append to result
-        result += (
-            f"{line}\n" +
-            " " * col_start + "~" * (col_end - col_start)
-        )
+        result += f"{line}\n" + " " * col_start + "~" * (col_end - col_start)
 
         # Re-calculate indices
         idx_start = idx_end

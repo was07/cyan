@@ -15,16 +15,16 @@ class T:
     DIV = "DIV"
     POW = "POW"
 
-    EQ = "EQ"    # =
-    EE = "EE"    # ==
-    NE = "NE"    # !=
-    LT = "LT"    # <
-    GT = "GT"    # >
+    EQ = "EQ"  # =
+    EE = "EE"  # ==
+    NE = "NE"  # !=
+    LT = "LT"  # <
+    GT = "GT"  # >
     LTE = "LTE"  # <=
     GTE = "GTE"  # >=
 
-    L_PAREN = "L_PAREN"    # (
-    R_PAREN = "R_PAREN"    # )
+    L_PAREN = "L_PAREN"  # (
+    R_PAREN = "R_PAREN"  # )
     L_CPAREN = "L_CPAREN"  # {
     R_CPAREN = "R_CPAREN"  # }
 
@@ -32,10 +32,10 @@ class T:
     IDENTIFIER = "IDENTIFIER"
     KW = "KW"
 
-    COLON = "COLON"            # :
+    COLON = "COLON"  # :
     SEMI_COLON = "SEMI_COLON"  # ;
-    COMMA = "COMMA"            # ,
-    NEWLINE = "NEWLINE"        # \n
+    COMMA = "COMMA"  # ,
+    NEWLINE = "NEWLINE"  # \n
     EOF = "EOF"
 
 
@@ -44,7 +44,13 @@ class Token:
     start_pos: Optional[Pos]
     end_pos: Optional[Pos]
 
-    def __init__(self, tok_type, value=None, start_pos: Optional[Pos]=None, end_pos: Optional[Pos]=None):
+    def __init__(
+        self,
+        tok_type,
+        value=None,
+        start_pos: Optional[Pos] = None,
+        end_pos: Optional[Pos] = None,
+    ):
         self.tok_type = tok_type
         self.value = value
 

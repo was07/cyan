@@ -83,9 +83,9 @@ class Object:
         copy = self.__class__(self.value)
         copy.set_pos(self.start_pos, self.end_pos)
         copy.set_context(self.ctx)
-        
+
         return copy
-        
+
     def is_truthy(self) -> Bool:
         return Bool(True)
 
@@ -178,9 +178,7 @@ class Bool(Object):
 
     # converters
     def to_Number(self) -> RTResult:
-        return RTResult().success(
-            Number(int(self.value))
-        )
+        return RTResult().success(Number(int(self.value)))
 
     # logical operators
     def logic_and(self, other) -> BooleanOperationResult:
@@ -395,7 +393,7 @@ class Function(Object):
             .set_context(self.ctx)
             .set_pos(self.start_pos, self.end_pos)
         )
-        
+
 
 class BuiltInFunction(Object):
     def __init__(
@@ -419,7 +417,6 @@ class BuiltInFunction(Object):
             .set_context(self.ctx)
             .set_pos(self.start_pos, self.end_pos)
         )
-
 
     def execute(self, args: list) -> RTResult:
         res = RTResult()

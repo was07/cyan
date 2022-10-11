@@ -381,7 +381,9 @@ class Parser:
         if not self.crr_tok.is_equals(T.KW, "then"):  # then token
             print(self.crr_tok)
             return res.failure(
-                InvalidSyntaxError(self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected 'then' or {")
+                InvalidSyntaxError(
+                    self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected 'then' or {"
+                )
             )
         res.register_adv()
         self.advance()
@@ -390,21 +392,27 @@ class Parser:
             res.register_adv()
             self.advance()
 
-        expr = res.register(self.expr() if one_liner else self.statements())  # inside if
+        expr = res.register(
+            self.expr() if one_liner else self.statements()
+        )  # inside if
         if res.error:
             return res
-        
+
         if not one_liner:  # it's a multi-line if-block
-            if  not self.crr_tok.is_type(T.R_CPAREN):
+            if not self.crr_tok.is_type(T.R_CPAREN):
                 return res.failure(
-                    InvalidSyntaxError(self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected }")
+                    InvalidSyntaxError(
+                        self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected }"
+                    )
                 )
             res.register_adv()
             self.advance()
 
         if not self.crr_tok.is_equals(T.KW, "else"):  # else token
             return res.failure(
-                InvalidSyntaxError(self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected 'else'")
+                InvalidSyntaxError(
+                    self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected 'else'"
+                )
             )
 
         res.register_adv()
@@ -413,7 +421,9 @@ class Parser:
         if not one_liner:  # it's a multi-line if-block
             if not self.crr_tok.is_type(T.L_CPAREN):
                 return res.failure(
-                    InvalidSyntaxError(self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected {")
+                    InvalidSyntaxError(
+                        self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected {"
+                    )
                 )
             res.register_adv()
             self.advance()
@@ -421,11 +431,13 @@ class Parser:
         else_expr = res.register(self.expr() if one_liner else self.statements())
         if res.error:
             return res
-        
+
         if not one_liner:
             if not self.crr_tok.is_type(T.R_CPAREN):
                 return res.failure(
-                    InvalidSyntaxError(self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected }")
+                    InvalidSyntaxError(
+                        self.crr_tok.start_pos, self.crr_tok.end_pos, "Expected }"
+                    )
                 )
             res.register_adv()
             self.advance()
