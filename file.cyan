@@ -1,5 +1,6 @@
-let a = 1
-while a <= 5 {  # this is a comment
-    out(a)
-    let a = a + 1
+out('Guess the number.')
+let target = 3
+while Num(inp()) != target {
+    out('Try again.')
 }
+out('You got it.')

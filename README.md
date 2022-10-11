@@ -72,6 +72,8 @@ Output
 
 ## Docs (in progress)
 
+### Datatypes available
+
 | Data type | Converter   | Literal examples                             |
 |-----------|-------------|--------------------------------------|
 | String    | `Str()`     | `'ab'`, `"cd"`                       |
@@ -79,7 +81,50 @@ Output
 | Boolean   | `Bool()`    | `true`, `false`                      |
 | None      |             | `none`                               |
 
+## Build-in Functions available
+
 | Build-in Function | parameters | Usage                                                                                |
 |-------------------|------------|--------------------------------------------------------------------------------------|
 | `out()`           | values*    | make standard output. Joins all values with a single space, if there is more than one |
 | `inp()`           |            | Takes standard input and returns `Str` object                                        |
+
+### Functions
+
+Functions are constructed with the `fun` keyword. They are also first-class objects, and can be passed as arguments to other functions.
+```py
+fun plus(a, b) {  # multiple parameters posible
+    out(a + b)
+}
+
+plus(2, 3)
+```
+
+### If-Else Blocks
+
+There are `if`, `then`, and `else` keywords to use to make a if-else block. They can be one or multi iner.
+
+```py
+if Num(inp()) > 0 then {  # multi-line example
+    out('Positive')
+} else {
+    out('Negative')
+}
+```
+
+```py
+out(if Num(inp()) > 0 then 'Positive' else 'Negative')  # one_liner example
+```
+
+### While Loops
+
+`while` makes while loops.
+
+```py
+out('Guess the number.')
+let target = 3
+while Num(inp()) != target {  # loop
+    out('Try again.')
+}
+out('You got it.')
+```
+
