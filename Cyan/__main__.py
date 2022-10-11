@@ -62,18 +62,21 @@ def main():
     if "-d" in argv:
         debug = True
         argv.remove("-d")
+        
     if not argv:
         shell(debug_mode=debug)
+        
     if "--version" in argv:
         print(__version__)
-        return
+        sys.exit(0)
+
     if "--help" in argv:
         print(f"Cyan {__version__}")
         print(f"")
         print(f"    --version    See Cyan version")
         print(f"    --help       See this message")
         print(f"    -d           Enable debug mode")
-        return
+        sys.exit(0)
 
     for arg in argv:
         if os.path.exists(arg):

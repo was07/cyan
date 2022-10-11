@@ -354,7 +354,7 @@ class Parser:
 
         while (
             self.crr_tok.is_type(*operators)
-            or (self.crr_tok.type_, self.crr_tok.value) in operators
+            or (self.crr_tok.tok_type, self.crr_tok.value) in operators
         ):
             op_tok = self.crr_tok
             res.register_adv()

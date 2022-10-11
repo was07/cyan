@@ -44,23 +44,26 @@ class Token:
     start_pos: Optional[Pos]
     end_pos: Optional[Pos]
 
-    def __init__(self, type_, value=None, start_pos=None, end_pos=None):
-        self.type_ = type_
+    def __init__(self, tok_type, value=None, start_pos: Optional[Pos]=None, end_pos: Optional[Pos]=None):
+        self.tok_type = tok_type
         self.value = value
 
-        if start_pos:
+        if start_pos is not None:
             self.start_pos = start_pos.copy()
             self.end_pos = start_pos.copy()
             self.end_pos.advance()
 
-        if end_pos:
+        if end_pos is not None:
             self.end_pos = end_pos.copy()
 
     def __repr__(self) -> str:
-        return self.type_ + ("" if self.value is None else ":" + str(self.value))
+        if self.value is None:
+            return self.tok_type
+        else:
+            return f"{self.tok_type}:{self.value}"
 
-    def is_type(self, *token_name_s) -> bool:
-        return self.type_ in token_name_s
+    def is_type(self, *tokens: tuple[T]) -> bool:
+        return self.tok_type in tokens
 
     def is_equals(self, token_name, value) -> bool:
-        return self.type_ == token_name and self.value == value
+        return self.tok_type == token_name and self.value == value

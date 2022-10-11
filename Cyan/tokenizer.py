@@ -176,7 +176,7 @@ class Tokenizer:
                 continue
             elif self.char == "!":
                 token, error = self.get_not_equals()
-                if error:
+                if error is not None:
                     return [], error
                 tokens.append(token)
             elif self.char == "=":

@@ -35,7 +35,6 @@ class RTError(Error):
 
     def __init__(self, pos_start, pos_end, info, context):
         super().__init__("Runtime Error", pos_start, pos_end, info)
-
         self.context = context
 
     def __repr__(self):
