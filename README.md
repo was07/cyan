@@ -81,7 +81,7 @@ Output
 | Boolean   | `Bool()`    | `true`, `false`                      |
 | None      |             | `none`                               |
 
-## Build-in Functions available
+### Build-in Functions available
 
 | Build-in Function | parameters | Usage                                                                                |
 |-------------------|------------|--------------------------------------------------------------------------------------|
