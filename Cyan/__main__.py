@@ -23,7 +23,7 @@ def shell(debug_mode=False):
             print("\nExiting...")
             sys.exit(0)
 
-        if text.strip() == "":
+        if text.lstrip() == "":
             continue
 
         result, error = _run_fn("<stdin>", text)
@@ -45,7 +45,7 @@ def run_file(filename: str, debug_mode: bool):
 
     result, error = res
 
-    if error:
+    if error is not None:
         print(error)
 
 

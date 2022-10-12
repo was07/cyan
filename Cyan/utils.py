@@ -83,7 +83,7 @@ class Printer:
         print(end=_CLR.SEPERATOR_CLR)
 
     @staticmethod
-    def internal_error(*values) -> None:
+    def error(*values) -> None:
         print(end=_CLR.ERROR_CLR)
         print(*values)
         print(end=_CLR.RESET)

@@ -49,7 +49,7 @@ class Tokenizer:
     def get_number(self) -> Token:
         num_str = ""
         dot_count = 0
-        pos_start = self.pos.copy()
+        start_pos = self.pos.copy()
 
         while self.char is not None and self.char.isnumeric() or self.char == ".":
             if self.char == ".":
@@ -63,11 +63,11 @@ class Tokenizer:
 
         if dot_count == 0:
             return Token(
-                T.INT, int(num_str), start_pos=pos_start, end_pos=self.pos.copy()
+                T.INT, int(num_str), start_pos=start_pos, end_pos=self.pos.copy()
             )
         else:
             return Token(
-                T.FLOAT, float(num_str), start_pos=pos_start, end_pos=self.pos.copy()
+                T.FLOAT, float(num_str), start_pos=start_pos, end_pos=self.pos.copy()
             )
 
     def get_string(self) -> Token:
@@ -118,7 +118,7 @@ class Tokenizer:
         return Token(tok_type, start_pos=start_pos, end_pos=self.pos.copy())
 
     def get_less_then(self) -> Token:
-        pos_start = self.pos.copy()
+        start_pos = self.pos.copy()
         tok_type = T.LT
         self.advance()
 
@@ -126,10 +126,10 @@ class Tokenizer:
             tok_type = T.LTE
             self.advance()
 
-        return Token(tok_type, start_pos=pos_start, end_pos=self.pos.copy())
+        return Token(tok_type, start_pos=start_pos, end_pos=self.pos.copy())
 
     def get_greater_then(self) -> Token:
-        pos_start = self.pos.copy()
+        start_pos = self.pos.copy()
         tok_type = T.GT
         self.advance()
 
@@ -137,11 +137,11 @@ class Tokenizer:
             tok_type = T.GTE
             self.advance()
 
-        return Token(tok_type, start_pos=pos_start, end_pos=self.pos.copy())
+        return Token(tok_type, start_pos=start_pos, end_pos=self.pos.copy())
 
     def get_identifier(self) -> Token:
         ident: str = ""
-        pos_start = self.pos.copy()
+        start_pos = self.pos.copy()
 
         while self.char is not None and (self.char.isalnum() or self.char == "_"):
             ident += self.char
@@ -154,7 +154,7 @@ class Tokenizer:
         else:
             toke_type = T.IDENTIFIER
 
-        return Token(toke_type, ident, pos_start, self.pos.copy())
+        return Token(toke_type, ident, start_pos, self.pos.copy())
 
     def parse(self):
         """parse code"""
@@ -168,7 +168,9 @@ class Tokenizer:
                 tokens.append(self.get_identifier())
                 continue
             elif self.char in CHAR_TOKEN_MAP:
-                tokens.append(Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos))
+                tokens.append(
+                    Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos)
+                )
             elif self.char in ("'", '"'):
                 tokens.append(self.get_string())
             elif self.char == "*":

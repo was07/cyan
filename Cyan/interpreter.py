@@ -26,15 +26,16 @@ __all__ = ("Interpreter", "build_in_out", "interpret", "run", "run_debug")
 
 
 class Interpreter:
-    def visit(self, node: ast.NodeSelf, ctx: Context) -> RTResult:
+    def visit(self, node: ast.Node, ctx: Context) -> RTResult:
         method_name = f"visit_{type(node).__name__}"
-        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(
+        method: Callable[[ast.Node, Context], RTResult] = getattr(
             self, method_name, self.no_visit_method
         )
         return method(node, ctx)
 
-    def no_visit_method(self, node, ctx: Context):
-        Printer.internal_error(
+    @staticmethod
+    def no_visit_method(node: ast.Node, ctx: Context):
+        Printer.error(
             f"Interpreter: visit_{type(node).__name__} method is not defined"
         )
         exit()
@@ -277,7 +278,15 @@ class Interpreter:
             arg = args[i]
             context.symbol_map.set(parameter.value, arg)
 
-        value = res.register(self.visit(fn.body, context))
+        try:
+            value = res.register(self.visit(fn.body, context))
+        except RecursionError:
+            return res.failure(
+                RTError(
+                    fn.start_pos, fn.end_pos, "Maximum recursion depth exceeded", context
+                )
+            )
+
         if res.error:
             return res
         else:
