@@ -22,7 +22,7 @@ from cyan.types import (
     Context,
 )
 
-__all__ = ("Interpreter", "build_in_out", "interpret", "run", "run_debug")
+__all__ = ("Interpreter", "builtin_out", "interpret", "run", "run_debug")
 
 
 class Interpreter:
@@ -258,8 +258,10 @@ class Interpreter:
                 RTError(
                     fn.start_pos,
                     fn.end_pos,
-                    ("Too many" if len(args) > fn.n_params else "Not enough")
-                    + f" ({len(args)}) arguments given into {fn.name}, takes {fn.n_params}",
+                    "{} arguments, {} given into '{}', takes {}".format(
+                        "Too many" if len(args) > fn.n_params else "Not enough",
+                        len(args), fn.name, fn.n_params
+                    ),
                     context,
                 )
             )
@@ -293,7 +295,7 @@ class Interpreter:
             return res.success(value)
 
 
-def build_in_out(*values):
+def builtin_out(*values):
     if len(values) != 1:
         Printer.output(" ".join(map(str, values)))
     else:
@@ -302,9 +304,15 @@ def build_in_out(*values):
     return RTResult().success(NoneObj())
 
 
-def build_in_inp():
-    inp = String(input())
-    return RTResult().success(inp)
+def builtin_inp():
+    try:
+        inp = input()
+    except KeyboardInterrupt:
+        return RTResult()
+
+    return RTResult().success(
+        String(inp)
+    )
 
 
 def interpret(node: ast.Node, context: Context) -> RTResult:
@@ -368,8 +376,8 @@ def run_debug(filename: str, code: str):
 
 
 GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float("inf")))
-GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
+GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", builtin_out, float("inf")))
+GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", builtin_inp, 0))
 GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
 GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))
 GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter, 1))

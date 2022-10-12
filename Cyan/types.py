@@ -12,12 +12,9 @@ if TYPE_CHECKING:
 
     ObjectSelf = TypeVar("ObjectSelf", bound="Object")
     OperationResult: TypeAlias = tuple[ObjectSelf, None]
-    OperationError: TypeAlias = tuple[None, RTError]
-
     BooleanOperationResult: TypeAlias = tuple["Bool", None]
 
-    OperationResultOrError: TypeAlias = OperationResult | OperationError
-    BooleanOperationResultOrError: TypeAlias = BooleanOperationResult | OperationError
+    OperationError: TypeAlias = tuple[None, RTError]
 
 
 __all__ = (
@@ -68,6 +65,13 @@ class Object:
 
     __repr__ = __str__
 
+    @classmethod
+    def is_same_type(cls, other: Object) -> bool:
+        """
+        return whether the current type is the same as the other type
+        """
+        return isinstance(other, cls)
+
     def set_pos(
         self, pos_start: Optional[Pos] = None, pos_end: Optional[Pos] = None
     ) -> ObjectSelf:
@@ -90,55 +94,55 @@ class Object:
         return Bool(True)
 
     # arithmetic operations
-    def operate_plus(self, other) -> OperationError:
-        return None, self.not_supported("+ operator", other)
+    def operate_plus(self, other) -> OperationResult | OperationError:
+        return self.operation_not_supported("+ operator", other)
 
-    def operate_minus(self, other) -> OperationError:
-        return None, self.not_supported("- operator", other)
+    def operate_minus(self, other) -> OperationResult | OperationError:
+        return self.operation_not_supported("- operator", other)
 
-    def operate_mul(self, other) -> OperationError:
-        return None, self.not_supported("* operator", other)
+    def operate_mul(self, other) -> OperationResult | OperationError:
+        return self.operation_not_supported("* operator", other)
 
-    def operate_div(self, other) -> OperationError:
-        return None, self.not_supported("/ operator", other)
+    def operate_div(self, other) -> OperationResult | OperationError:
+        return self.operation_not_supported("/ operator", other)
 
-    def operate_pow(self, other) -> OperationError:
-        return None, self.not_supported("^ operator", other)
+    def operate_pow(self, other) -> OperationResult | OperationError:
+        return self.operation_not_supported("^ operator", other)
 
     # boolean operations
-    def compare_eq(self, other) -> OperationError:
-        return None, self.not_supported("== operator", other)
+    def compare_eq(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("== operator", other)
 
-    def compare_ne(self, other) -> OperationError:
-        return None, self.not_supported("!= operator", other)
+    def compare_ne(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("!= operator", other)
 
-    def compare_gt(self, other) -> OperationError:
-        return None, self.not_supported("> operator", other)
+    def compare_gt(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("> operator", other)
 
-    def compare_lt(self, other) -> OperationError:
-        return None, self.not_supported("< operator", other)
+    def compare_lt(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("< operator", other)
 
-    def compare_gte(self, other) -> OperationError:
-        return None, self.not_supported(">= operator", other)
+    def compare_gte(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported(">= operator", other)
 
-    def compare_lte(self, other) -> OperationError:
-        return None, self.not_supported("<= operator", other)
+    def compare_lte(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("<= operator", other)
 
     # logical operations
-    def logic_and(self, other) -> OperationError:
-        return None, self.not_supported("'and' logic", other)
+    def logic_and(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("'and' logic", other)
 
-    def logic_or(self, other) -> OperationError:
-        return None, self.not_supported("'or' logic", other)
+    def logic_or(self, other) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("'or' logic", other)
 
-    def logic_not(self) -> OperationError:
-        return None, self.not_supported("'not' logic", self)
+    def logic_not(self) -> BooleanOperationResult | OperationError:
+        return self.operation_not_supported("'not' logic", self)
 
-    def not_supported(self, what_is_not_supported: str, other: Object) -> RTError:
-        return RTError(
+    def operation_not_supported(self, operation: str, other: Object) -> OperationError:
+        return None, RTError(
             self.start_pos,
             self.end_pos,
-            f"{self.type_name} does not support {what_is_not_supported} with {other.type_name}",
+            f"{self.type_name} does not support {operation} with {other.type_name}",
             self.ctx,
         )
 
@@ -181,13 +185,13 @@ class Bool(Object):
         return RTResult().success(Number(int(self.value)))
 
     # logical operators
-    def logic_and(self, other) -> BooleanOperationResult:
+    def logic_and(self, other):
         return Bool(self.value and other.value).set_context(self.ctx), None
 
-    def logic_or(self, other) -> BooleanOperationResult:
+    def logic_or(self, other):
         return Bool(self.value or other.value).set_context(self.ctx), None
 
-    def logic_not(self) -> BooleanOperationResult:
+    def logic_not(self):
         return Bool(not self.value).set_context(self.ctx), None
 
 
@@ -224,26 +228,26 @@ class Number(Object):
         return Bool(bool(self.value))
 
     # arithmetic operations
-    def operate_plus(self, other: Number) -> OperationResultOrError:
-        if isinstance(other, Number):
+    def operate_plus(self, other: Number):
+        if self.is_same_type(other):
             return Number(self.value + other.value).set_context(self.ctx), None
         else:
             return Object.operate_plus(self, other)  # makes not supported error
 
-    def operate_minus(self, other: Number) -> OperationResultOrError:
-        if isinstance(other, Number):
+    def operate_minus(self, other: Number):
+        if self.is_same_type(other):
             return Number(self.value - other.value).set_context(self.ctx), None
         else:
             return Object.operate_minus(self, other)  # makes not supported error
 
-    def operate_mul(self, other: Number) -> OperationResultOrError:
-        if isinstance(other, Number):
+    def operate_mul(self, other: Number):
+        if self.is_same_type(other):
             return Number(self.value * other.value).set_context(self.ctx), None
         else:
             return Object.operate_mul(self, other)  # makes not supported error
 
-    def operate_div(self, other: Number) -> OperationResultOrError:
-        if isinstance(other, Number):
+    def operate_div(self, other: Number):
+        if self.is_same_type(other):
             if other.value == 0:
                 return None, RTError(
                     other.start_pos, other.end_pos, "Division by Zero", self.ctx
@@ -252,63 +256,63 @@ class Number(Object):
         else:
             return Object.operate_div(self, other)  # makes not supported error
 
-    def operate_pow(self, other: Number) -> OperationResultOrError:
-        if isinstance(other, Number):
+    def operate_pow(self, other: Number):
+        if self.is_same_type(other):
             return Number(self.value**other.value).set_context(self.ctx), None
         else:
             return Object.operate_pow(self, other)  # makes not supported error
 
     # boolean operations
-    def compare_eq(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_eq(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value == other.value).set_context(self.ctx), None
         else:
             return Object.compare_eq(self, other)  # makes not supported error
 
-    def compare_ne(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_ne(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value != other.value).set_context(self.ctx), None
         else:
             return Object.compare_ne(self, other)  # makes not supported error
 
-    def compare_gt(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_gt(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value > other.value).set_context(self.ctx), None
         else:
             return Object.compare_gt(self, other)  # makes not supported error
 
-    def compare_lt(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_lt(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value < other.value).set_context(self.ctx), None
         else:
             return Object.compare_lt(self, other)  # makes not supported error
 
-    def compare_gte(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_gte(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value >= other.value).set_context(self.ctx), None
         else:
             return Object.compare_gte(self, other)  # makes not supported error
 
-    def compare_lte(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def compare_lte(self, other: Number):
+        if self.is_same_type(other):
             return Bool(self.value <= other.value).set_context(self.ctx), None
         else:
             return Object.compare_lte(self, other)  # makes not supported error
 
     # logical operations
-    def logic_and(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def logic_and(self, other: Number):
+        if self.is_same_type(other):
             return Bool(int(self.value and other.value)).set_context(self.ctx), None
         else:
             return Object.logic_and(self, other)  # makes not supported error
 
-    def logic_or(self, other: Number) -> BooleanOperationResultOrError:
-        if isinstance(other, Number):
+    def logic_or(self, other: Number):
+        if self.is_same_type(other):
             return Bool(int(self.value or other.value)).set_context(self.ctx), None
         else:
             return Object.logic_or(self, other)  # makes not supported error
 
-    def logic_not(self) -> BooleanOperationResult:
+    def logic_not(self):
         return Bool(int(not self.value)).set_context(self.ctx), None
 
 
@@ -361,24 +365,23 @@ class String(Object):
         return RTResult().success(Number(num_value))
 
     # arithmetic operations
-    def operate_plus(self, other: String) -> OperationResultOrError:
-        if isinstance(other, String):
+    def operate_plus(self, other: String):
+        if self.is_same_type(other):
             return String(self.value + other.value).set_context(self.ctx), None
         else:
             return Object.operate_plus(self, other)
 
     # boolean operations
-    def compare_eq(self, other: String) -> BooleanOperationResult:
+    def compare_eq(self, other: String):
         return Bool(self.value == other.value).set_context(self.ctx), None
 
-    def compare_ne(self, other: String) -> BooleanOperationResult:
+    def compare_ne(self, other: String):
         return Bool(self.value != other.value).set_context(self.ctx), None
 
 
 class Function(Object):
     def __init__(self, name: str, parameters: list[Token], body: Node):
-        Object.__init__(self)
-        self.type_name: str = "Function"
+        super().__init__("Function")
         self.name = name
         self.params = parameters
         self.n_params = len(parameters)  # can be inf
@@ -402,8 +405,7 @@ class BuiltInFunction(Object):
         function: Callable[[Object | tuple[Object]], RTResult],
         n_params: int,
     ):
-        Object.__init__(self)
-        self.type_name = "BuiltInFunction"
+        super().__init__("BuiltInFunction")
         self.name = name
         self.function = function  # a function that has to return RTResult object
         self.n_params = n_params  # can be inf
@@ -417,18 +419,6 @@ class BuiltInFunction(Object):
             .set_context(self.ctx)
             .set_pos(self.start_pos, self.end_pos)
         )
-
-    def execute(self, args: list) -> RTResult:
-        res = RTResult()
-
-        if len(args) != self.n_params:
-            return res.error()
-
-        value = res.register(self.function(*args))
-        if res.error:
-            return res
-
-        return res.success(value)
 
 
 @dataclass(slots=True, frozen=True)

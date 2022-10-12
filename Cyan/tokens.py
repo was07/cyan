@@ -46,7 +46,7 @@ class Token:
 
     def __init__(
         self,
-        tok_type,
+        tok_type: str,
         value=None,
         start_pos: Optional[Pos] = None,
         end_pos: Optional[Pos] = None,
