@@ -78,6 +78,8 @@ class Tokenizer:
         self.advance()
 
         while self.char != quote_used:
+            if self.char is None:
+                return InvalidSyntaxError(start_pos, self.pos.copy(), "Unterminated string literal")
             content += self.char
             self.advance()
 
@@ -170,7 +172,11 @@ class Tokenizer:
             elif self.char in CHAR_TOKEN_MAP:
                 tokens.append(Token(CHAR_TOKEN_MAP[self.char], start_pos=self.pos))
             elif self.char in ("'", '"'):
-                tokens.append(self.get_string())
+                string_or_error = self.get_string()
+                if isinstance(string_or_error, Token):
+                    tokens.append(string_or_error)
+                else:
+                    return [], string_or_error
             elif self.char == "*":
                 tokens.append(self.get_mul_or_paw())
                 continue
