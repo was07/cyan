@@ -87,13 +87,10 @@ class Printer:
         print(end=_CLR.DEBUG_CLR)
         print(*values)
         print(end=_CLR.RESET)
-
-    @staticmethod
-    def seperator() -> None:
-        print(end=_CLR.SEPERATOR_CLR)
-
+    
     @staticmethod
     def error(*values) -> None:
+        """Internal Error"""
         print(end=_CLR.ERROR_CLR)
         print(*values)
         print(end=_CLR.RESET)
