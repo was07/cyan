@@ -44,30 +44,26 @@ none
 36
 >>> let a = 1
 1
->>> while a < 5 {out(a); let a = a + 1}
-1
-2
-3
-4
-none
->>>
 ```
 
 Code
 ```py
-let a = 1
-while a <= 5 {  # this is a comment
-    out(a)
-    let a = a + 1
+out('Guess the number.')
+let target = 3
+while Num(inp()) != target {
+    out('Try again.')
 }
+out('You got it.')
 ```
 Output
 ```
-1
-2
-3
+Guess the number.
+6
+Try again.
 4
-5
+Try again.
+3
+You got it.
 ```
 
 ## Docs (in progress)
@@ -90,9 +86,9 @@ Output
 
 ### Functions
 
-Functions are constructed with the `fun` keyword. They are also first-class objects, and can be passed as arguments to other functions.
+Functions are constructed with the `fun` keyword. They are also first-class objects, can be passed as arguments to other functions.
 ```py
-fun plus(a, b) {  # multiple parameters posible
+fun plus(a, b) {  # multiple parameters possible
     out(a + b)
 }
 
@@ -101,7 +97,7 @@ plus(2, 3)
 
 ### If-Else Blocks
 
-There are `if`, `then`, and `else` keywords to use to make a if-else block. They can be one or multi iner.
+There are `if`, `then`, and `else` keywords to use to make a if-else block. They can be single or multiliner.
 
 ```py
 if Num(inp()) > 0 then {  # multi-line example
@@ -127,4 +123,3 @@ while Num(inp()) != target {  # loop
 }
 out('You got it.')
 ```
-
