@@ -51,6 +51,10 @@ class Interpreter:
         if len(nodes) == 1:
             return res.success(nodes[0])
         return res
+    
+    @staticmethod
+    def visit_PassNode(node: ast.PassNode, ctx: Context):
+        return RTResult().success(NoneObj())
 
     @staticmethod
     def visit_NumberNode(node: ast.NumberNode, ctx: Context):

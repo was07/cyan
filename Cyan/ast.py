@@ -54,6 +54,14 @@ class StatementsNode(Node):
         return f"Statements({statements})"
 
 
+class PassNode(Node):
+    def __init__(self, start_pos: Optional[Pos], end_pos: Optional[Pos]):
+        super().set_pos(start_pos, end_pos)
+    
+    def __repr__(self) -> str:
+        return "PassNode"
+
+
 class NumberNode(Node):
     def __init__(self, tok: Optional[Token]):
         self.tok = tok

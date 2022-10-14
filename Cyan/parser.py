@@ -98,7 +98,7 @@ class Parser:
             res.register_adv()
             self.advance()
 
-        statement = res.register(self.expr())
+        statement = res.register(self.statement())
         if res.error:
             return res
         statements.append(statement)
@@ -116,7 +116,7 @@ class Parser:
 
             if not more_statements:
                 break
-            statement = res.try_register(self.expr())
+            statement = res.try_register(self.statement())
 
             if not statement:
                 self.reverse(res.to_reverse_count)
@@ -127,6 +127,17 @@ class Parser:
         return res.success(
             ast.StatementsNode(statements, pos_start, self.crr_tok.end_pos)
         )
+    
+    def statement(self):
+        res = ParseResult()
+
+        if self.crr_tok.is_equals(T.KW, "pass"):
+            s, e = self.crr_tok.start_pos.copy(), self.crr_tok.end_pos.copy()
+            res.register_adv()
+            self.advance()
+            return res.success(ast.PassNode(s, e))
+        
+        return self.expr()
 
     def expr(self):
         res = ParseResult()

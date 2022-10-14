@@ -19,7 +19,7 @@ CHAR_TOKEN_MAP: dict[str, str] = {
 
 LITERALS = frozenset(["true", "false", "none"])
 KEYWORDS = frozenset(
-    ["let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun"]
+    ["let", "and", "or", "not", "if", "then", "elif", "else", "while", "fun", "pass"]
 )
 
 TokenResult = tuple[Token, None] | tuple[None, InvalidSyntaxError]

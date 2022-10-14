@@ -1,4 +1,6 @@
-statements : NEWLINE* expr (NEWLINE+ expr)*
+statements : NEWLINE* statement (NEWLINE+ statement)*
+
+statement  : expr | KW:pass
 
 expr       : KW:let IDENTIFIER EQ expr
            : comp-expr ((KW:and|KW:or) comp-expr)*
