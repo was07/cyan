@@ -1,19 +1,21 @@
+"""All token types stored in T and Token class"""
 # for type hinting
 from typing import Optional
 from cyan.utils import Pos
 
 
 class T:
+    """All Token Types"""
     __slots__ = ()
     INT = "INT"
     FLOAT = "FLOAT"
     STRING = "STRING"
 
-    PLUS = "PLUS"
-    MINUS = "MINUS"
-    MUL = "MUL"
-    DIV = "DIV"
-    POW = "POW"
+    PLUS = "PLUS"    # +
+    MINUS = "MINUS"  # -
+    MUL = "MUL"      # *
+    DIV = "DIV"      # /
+    POW = "POW"      # **
 
     EQ = "EQ"  # =
     EE = "EE"  # ==
@@ -28,15 +30,16 @@ class T:
     L_CPAREN = "L_CPAREN"  # {
     R_CPAREN = "R_CPAREN"  # }
 
-    LITERAL = "LITERAL"
-    IDENTIFIER = "IDENTIFIER"
-    KW = "KW"
+    LITERAL = "LITERAL"        # literal value like true, false and none
+    IDENTIFIER = "IDENTIFIER"  # constructed only with english alphabets
+    KW = "KW"                  # keyword
 
     COLON = "COLON"  # :
     SEMI_COLON = "SEMI_COLON"  # ;
-    COMMA = "COMMA"  # ,
-    NEWLINE = "NEWLINE"  # \n
-    EOF = "EOF"
+    COMMA = "COMMA"            # ,
+    NEWLINE = "NEWLINE"        # \n
+
+    EOF = "EOF"  # end of file
 
 
 class Token:

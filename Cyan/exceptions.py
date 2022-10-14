@@ -2,6 +2,7 @@ from cyan.utils import Pos, pos_highlight
 
 
 class Error:
+    """Base class for all cyan errors"""
     __slots__ = ("name", "info", "start_pos", "end_pos", "ecode")
 
     def __init__(self, name: str, pos_start: Pos, pos_end: Pos, info: str):
@@ -12,6 +13,7 @@ class Error:
         self.ecode = ""
 
     def set_ecode(self, ecode):
+        """Unique Error Code to pin-point where the error originated from the interpreter"""
         self.ecode = ecode
         return self
 
@@ -31,6 +33,7 @@ class Error:
 
 
 class RTError(Error):
+    """Base class for run-time error"""
     __slots__ = (*Error.__slots__, "context")  # extends base slots with self.context
 
     def __init__(self, pos_start, pos_end, info, context):

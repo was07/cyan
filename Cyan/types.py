@@ -1,3 +1,4 @@
+"""RTResult and all Cyan objects"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -31,6 +32,7 @@ __all__ = (
 
 
 class RTResult:
+    """Run-Time Result, used with Interpreter"""
     __slots__ = ("value", "error")
 
     def __init__(self):
@@ -52,6 +54,7 @@ class RTResult:
 
 
 class Object:
+    """Base class for Cyan objects"""
     value: Optional[Any] = None
     ctx: Optional[Context] = None
     start_pos: Optional[Pos] = None
@@ -380,6 +383,7 @@ class String(Object):
 
 
 class Function(Object):
+    """User-defined cyan function"""
     def __init__(self, name: str, parameters: list[Token], body: Node):
         super().__init__("Function")
         self.name = name
@@ -423,6 +427,7 @@ class BuiltInFunction(Object):
 
 @dataclass(slots=True, frozen=True)
 class Context:
+    """Stores info about different scopes in cyan code"""
     name: str
     parent: Optional[Context] = None
     parent_entry_pos: Optional[Pos] = None
@@ -430,6 +435,7 @@ class Context:
 
 
 class SymbolMap:
+    """Stores values of identifiers in cyan code"""
     __slots__ = ("symbol_map", "parent")
 
     def __init__(self, parent=None):
@@ -444,7 +450,9 @@ class SymbolMap:
             return value
 
     def set(self, name: str, value) -> None:
+        """set value of an identifier"""
         self.symbol_map[name] = value
 
     def remove(self, name: str) -> None:
+        """delete an identifers value"""
         del self.symbol_map[name]

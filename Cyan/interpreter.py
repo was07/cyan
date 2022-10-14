@@ -1,3 +1,4 @@
+"""Interpreter, build-in function defs and run function"""
 from __future__ import annotations
 import time
 
@@ -128,6 +129,7 @@ class Interpreter:
         result = None
         error = None
 
+        # main operations
         if oper.is_type(T.PLUS):
             result, error = left.operate_plus(right)
         elif oper.is_type(T.MINUS):
@@ -138,6 +140,7 @@ class Interpreter:
             result, error = left.operate_div(right)
         elif oper.is_type(T.POW):
             result, error = left.operate_pow(right)
+        # boolean operations
         elif oper.is_type(T.EE):
             result, error = left.compare_eq(right)
         elif oper.is_type(T.NE):
@@ -150,6 +153,7 @@ class Interpreter:
             result, error = left.compare_lte(right)
         elif oper.is_type(T.GTE):
             result, error = left.compare_gte(right)
+        # and/or
         elif oper.is_equals(T.KW, "and"):
             result, error = left.logic_and(right)
         elif oper.is_equals(T.KW, "or"):
@@ -320,11 +324,13 @@ def builtin_inp():
 
 
 def interpret(node: ast.Node, context: Context) -> RTResult:
+    """Creates an interpreter instance and visits node"""
     interpreter = Interpreter()
     return interpreter.visit(node, context)
 
 
 def run(filename: str, code: str):
+    """Main run function"""
     tokens, error = tokenize(filename, code)
 
     if error is not None:
@@ -345,6 +351,7 @@ def run(filename: str, code: str):
 
 
 def run_debug(filename: str, code: str):
+    """Main run function, with debug mode on"""
     start_t = time.perf_counter()
     t1 = start_t
     tokens, error = tokenize(filename, code)

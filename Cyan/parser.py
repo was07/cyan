@@ -1,3 +1,4 @@
+"""AST Parser and it's utils"""
 from typing import Optional
 
 from cyan.tokens import T
@@ -9,6 +10,7 @@ __all__ = ("ParseResult", "Parser", "parse_ast")
 
 
 class ParseResult:
+    """Parse Result, used with Parser"""
     __slots__ = (
         "error",
         "node",
@@ -51,6 +53,7 @@ class ParseResult:
 
 
 class Parser:
+    """Processes the list of tokens and makes AST. See grammer.txt"""
     __slots__ = ("tokens", "crr_idx", "crr_tok")
 
     def __init__(self, tokens):
@@ -245,6 +248,7 @@ class Parser:
         return res.success(atom)
 
     def atom(self):
+        """Smallest portion of cyan grammer"""
         res = ParseResult()
         tok = self.crr_tok
 

@@ -27,6 +27,7 @@ TokenResult = tuple[Token, None] | tuple[None, InvalidSyntaxError]
 
 # Tokenizer/Lexer
 class Tokenizer:
+    """Makes a list of tokens from the raw cyan code"""
     __slots__ = ("file_name", "text", "text_length", "char", "pos")
 
     def __init__(self, file_name: str, text: str):

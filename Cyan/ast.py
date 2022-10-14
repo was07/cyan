@@ -1,3 +1,6 @@
+"""
+Nodes for Abstract Syntax Tree
+"""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -28,6 +31,7 @@ __all__ = (
 
 
 class Node:
+    """Base class for AST Nodes"""
     start_pos: Optional[Pos]
     end_pos: Optional[Pos]
 
