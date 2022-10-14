@@ -308,7 +308,7 @@ def builtin_inp():
     try:
         inp = input()
     except KeyboardInterrupt:
-        return RTResult()
+        return RTResult().success(NoneObj())
 
     return RTResult().success(
         String(inp)
