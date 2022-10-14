@@ -22,19 +22,20 @@ from cyan.types import (
     Context,
 )
 
-__all__ = ("Interpreter", "build_in_out", "interpret", "run", "run_debug")
+__all__ = ("Interpreter", "builtin_out", "interpret", "run", "run_debug")
 
 
 class Interpreter:
-    def visit(self, node: ast.NodeSelf, ctx: Context) -> RTResult:
+    def visit(self, node: ast.Node, ctx: Context) -> RTResult:
         method_name = f"visit_{type(node).__name__}"
-        method: Callable[[ast.NodeSelf, Context], RTResult] = getattr(
+        method: Callable[[ast.Node, Context], RTResult] = getattr(
             self, method_name, self.no_visit_method
         )
         return method(node, ctx)
 
-    def no_visit_method(self, node, ctx: Context):
-        Printer.internal_error(
+    @staticmethod
+    def no_visit_method(node: ast.Node, ctx: Context):
+        Printer.error(
             f"Interpreter: visit_{type(node).__name__} method is not defined"
         )
         exit()
@@ -261,8 +262,10 @@ class Interpreter:
                 RTError(
                     fn.start_pos,
                     fn.end_pos,
-                    ("Too many" if len(args) > fn.n_params else "Not enough")
-                    + f" ({len(args)}) arguments given into {fn.name}, takes {fn.n_params}",
+                    "{} arguments, {} given into '{}', takes {}".format(
+                        "Too many" if len(args) > fn.n_params else "Not enough",
+                        len(args), fn.name, fn.n_params
+                    ),
                     context,
                 )
             )
@@ -281,14 +284,22 @@ class Interpreter:
             arg = args[i]
             context.symbol_map.set(parameter.value, arg)
 
-        value = res.register(self.visit(fn.body, context))
+        try:
+            value = res.register(self.visit(fn.body, context))
+        except RecursionError:
+            return res.failure(
+                RTError(
+                    fn.start_pos, fn.end_pos, "Maximum recursion depth exceeded", context
+                )
+            )
+
         if res.error:
             return res
         else:
             return res.success(value)
 
 
-def build_in_out(*values):
+def builtin_out(*values):
     if len(values) != 1:
         Printer.output(" ".join(map(str, values)))
     else:
@@ -297,9 +308,15 @@ def build_in_out(*values):
     return RTResult().success(NoneObj())
 
 
-def build_in_inp():
-    inp = String(input())
-    return RTResult().success(inp)
+def builtin_inp():
+    try:
+        inp = input()
+    except KeyboardInterrupt:
+        return RTResult().success(NoneObj())
+
+    return RTResult().success(
+        String(inp)
+    )
 
 
 def interpret(node: ast.Node, context: Context) -> RTResult:
@@ -363,8 +380,8 @@ def run_debug(filename: str, code: str):
 
 
 GLOBAL_SYMBOL_MAP = SymbolMap()
-GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", build_in_out, float("inf")))
-GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", build_in_inp, 0))
+GLOBAL_SYMBOL_MAP.set("out", BuiltInFunction("out", builtin_out, float("inf")))
+GLOBAL_SYMBOL_MAP.set("inp", BuiltInFunction("inp", builtin_inp, 0))
 GLOBAL_SYMBOL_MAP.set("Bool", BuiltInFunction("Bool", Bool.converter, 1))
 GLOBAL_SYMBOL_MAP.set("Num", BuiltInFunction("Num", Number.converter, 1))
 GLOBAL_SYMBOL_MAP.set("Str", BuiltInFunction("Str", String.converter, 1))

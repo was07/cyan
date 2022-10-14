@@ -35,7 +35,6 @@ class RTError(Error):
 
     def __init__(self, pos_start, pos_end, info, context):
         super().__init__("Runtime Error", pos_start, pos_end, info)
-
         self.context = context
 
     def __repr__(self):
@@ -67,5 +66,5 @@ class InvalidCharacterError(Error):
 
 
 class InvalidSyntaxError(Error):
-    def __init__(self, pos_start, pos_end, info=""):
-        super().__init__("SyntaxError", pos_start, pos_end, info)
+    def __init__(self, start_pos, end_pos, info=""):
+        super().__init__("SyntaxError", start_pos, end_pos, info)
