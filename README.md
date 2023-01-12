@@ -32,7 +32,7 @@ To run a file, use `python cyan filename.cy`. To see other options, use `python 
 
 ## Example Code
 
-Repl
+Repl example
 ```py
 Cyan 1.1.0 shell on win32
 >>> out("cy"+'an')
@@ -46,7 +46,7 @@ none
 1
 ```
 
-Code
+Code example
 ```py
 out('Guess the number.')
 let target = 3
@@ -70,7 +70,7 @@ You got it.
 
 ### Datatypes available
 
-| Data type | Converter   | Literal examples                             |
+| Data type | Converter   | Literal examples                     |
 |-----------|-------------|--------------------------------------|
 | String    | `Str()`     | `'ab'`, `"cd"`                       |
 | Number    | `Num()`     | `1`, `2.45`, `1.` (`.1` is invalid)  |
@@ -79,10 +79,10 @@ You got it.
 
 ### Build-in Functions available
 
-| Build-in Function | parameters | Usage                                                                                |
-|-------------------|------------|--------------------------------------------------------------------------------------|
+| Build-in Function | parameters | Usage                                                                                 |
+|-------------------|------------|---------------------------------------------------------------------------------------|
 | `out()`           | values*    | make standard output. Joins all values with a single space, if there is more than one |
-| `inp()`           |            | Takes standard input and returns `Str` object                                        |
+| `inp()`           |            | Takes standard input and returns `Str` object                                         |
 
 ### Functions
 
@@ -100,15 +100,15 @@ plus(2, 3)
 There are `if`, `then`, and `else` keywords to use to make a if-else block. They can be single or multiliner.
 
 ```py
+out(if Num(inp()) > 0 then 'Positive' else 'Negative')  # single-line example
+```
+
+```py
 if Num(inp()) > 0 then {  # multi-line example
     out('Positive')
 } else {
     out('Negative')
 }
-```
-
-```py
-out(if Num(inp()) > 0 then 'Positive' else 'Negative')  # one_liner example
 ```
 
 ### While Loops
@@ -118,7 +118,7 @@ out(if Num(inp()) > 0 then 'Positive' else 'Negative')  # one_liner example
 ```py
 out('Guess the number.')
 let target = 3
-while Num(inp()) != target {  # loop
+while Num(inp()) != target {  # while loop
     out('Try again.')
 }
 out('You got it.')
