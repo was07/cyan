@@ -16,6 +16,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+[tool.setuptools]
+packages = ["Cyan"]  # root package directory
+
 [project.urls]
 "Homepage" = "https://github.com/was07/cyan"
 "Repository" = "https://github.com/was07/cyan"
