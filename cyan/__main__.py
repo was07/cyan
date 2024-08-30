@@ -19,7 +19,7 @@ def shell(debug_mode=False):
         try:
             text = input(">>> ")
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print("\nExiting...")
             sys.exit(0)
 
