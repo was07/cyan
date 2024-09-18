@@ -20,15 +20,16 @@ Pre-requiestes: `git` and `python3` (3.10 or above)
 
 ### Commands
 
-Get Cyan in your machine with
+To get Cyan in your machine, download the latest release or run
 ```bash
 git clone https://github.com/was07/Cyan
 ```
-Start the Cyan shell with `python cyan`
+Start the Cyan shell with `python -m cyan`.
+To see other options, use `python -m cyan --help`
 
-To run a file, use `python cyan filename.cy`. To see other options, use `python cyan --help`
+**To run a file**: use `python -m cyan filename.cy`.
 
-*For devs:* Add `-d` for developer mode.
+**For devs:** Add `-d` for developer mode.
 
 ## Example Code
 
